@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instructor & Coordinator Attendance Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #edf2f7; min-height: 100vh; display: flex; justify-content: center; padding: 24px 16px; }
+        .app { max-width: 1480px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 20, 40, 0.08); padding: 24px; }
+        
+        /* Header */
+        .app-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #eef2f6; }
+        .app-header h1 { font-size: 20px; font-weight: 700; color: #0f2d4a; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #1a4d7a; }
+        .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        
+        /* Buttons */
+        .btn { padding: 7px 14px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.15s; border: 1px solid transparent; background: #fff; color: #1e293b; border-color: #cbd5e1; }
+        .btn:hover { background: #f8fafc; }
+        .btn-primary { background: #1a4d7a; color: white; border-color: #1a4d7a; }
+        .btn-primary:hover { background: #12385b; }
+        .btn-success { background: #16a34a; color: white; border-color: #16a34a; }
+        .btn-success:hover { background: #15803d; }
+        .btn-clipboard { background: #0284c7; color: white; border-color: #0284c7; }
+        .btn-clipboard:hover { background: #0369a1; }
+        .btn-danger { background: #dc2626; color: white; border-color: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+        /* Toolbar Form */
+        .toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; background: #f8fafd; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e9f2; align-items: end; }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; }
+        .field select, .field input { background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 13px; color: #0b1e33; outline: none; width: 100%; }
+        .field select:focus, .field input:focus { border-color: #1a4d7a; }
+
+        /* Excel-Matched Table */
+        .table-wrap { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 6px; background: white; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1100px; }
+        th { background: #1a4d7a; color: #ffffff; font-weight: 600; padding: 9px 12px; text-align: left; border: 1px solid #163e63; white-space: nowrap; }
+        td { padding: 8px 12px; border: 1px solid #e2e8f0; vertical-align: middle; color: #334155; }
+        tr:nth-child(even) { background: #f8fafc; }
+        tr:hover td { background: #f1f5f9; }
+        .cell-date, .cell-time { font-style: italic; color: #475569; }
+        .cell-id { font-style: italic; color: #64748b; font-weight: 600; }
+
+        /* Modal Overlay & Card */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(2px); z-index: 999; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 14px; padding: 24px; max-width: 600px; width: 94%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        
+        /* Modal Tabs */
+        .modal-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; }
+        .tab-btn { padding: 8px 14px; border: none; background: transparent; font-weight: 600; font-size: 13px; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .tab-btn.active { color: #1a4d7a; border-color: #1a4d7a; }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; }
+        .role-tag { display: inline-block; padding: 2px 8px; background: #e2e8f0; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155; }
+
+        #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: white; padding: 10px 18px; border-radius: 6px; font-size: 13px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="app-header">
+            <h1><i class="fas fa-calendar-check"></i> Instructor Attendance Register</h1>
+            <div class="header-actions">
+                <button class="btn btn-outline btn-sm" id="openDirectoryModalBtn"><i class="fas fa-users-cog"></i> Manage Staff & Roles</button>
+                <button class="btn btn-clipboard btn-sm" id="copyAllBtn"><i class="fas fa-copy"></i> Copy All for Excel</button>
+                <button class="btn btn-outline btn-sm" id="exportBtn"><i class="fas fa-file-csv"></i> Export CSV</button>
+                <button class="btn btn-danger btn-sm" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Clear Table</button>
+            </div>
+        </div>
+
+        <!-- Form Toolbar -->
+        <div class="toolbar">
+            <div class="field">
+                <label>Date</label>
+                <input type="date" id="entryDate" />
+            </div>
+            <div class="field">
+                <label>Instructor Name</label>
+                <select id="instructorSelect"></select>
+            </div>
+            <div class="field">
+                <label>Instructor ID</label>
+                <input type="text" id="instructorId" placeholder="T001" readonly style="background:#f1f5f9;" />
+            </div>
+            <div class="field">
+                <label>Check-in</label>
+                <input type="time" id="inTime" value="16:00" />
+            </div>
+            <div class="field">
+                <label>Check-out</label>
+                <input type="time" id="outTime" value="17:30" />
+            </div>
+            <div class="field">
+                <label>Classes</label>
+                <input type="number" id="classesTaken" value="1" min="1" />
+            </div>
+            <div class="field">
+                <label>Subject / Grade</label>
+                <input type="text" id="subjectGrade" placeholder="English" />
+            </div>
+            <div class="field">
+                <label>Coordinator Name</label>
+                <select id="coordinatorSelect"></select>
+            </div>
+            <button class="btn btn-success" id="addRecordBtn"><i class="fas fa-plus"></i> Add Row</button>
+        </div>
+
+        <!-- Attendance Sheet Table -->
+        <div class="table-wrap">
+            <table id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Day of Week</th>
+                        <th>Instructor ID</th>
+                        <th>Instructor Name</th>
+                        <th>Check-in Time</th>
+                        <th>Check-out Time</th>
+                        <th>Total Hours Spent</th>
+                        <th>Number of Classes Taken</th>
+                        <th>Subject / Grade Level Taught</th>
+                        <th>Coordinator Name</th>
+                        <th style="text-align: center; width: 110px;">Excel Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Management Modal with Staff & Role Tabs -->
+    <div class="modal-overlay" id="managementModal">
+        <div class="modal">
+            <div class="modal-tabs">
+                <button class="tab-btn active" id="tabStaffBtn"><i class="fas fa-user-friends"></i> Staff Directory</button>
+                <button class="tab-btn" id="tabRolesBtn"><i class="fas fa-shield-alt"></i> Role Management</button>
+            </div>
+
+            <!-- Tab 1: Staff Directory -->
+            <div id="tabStaffContent">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                    <div class="field">
+                        <label>Staff ID</label>
+                        <input type="text" id="newStaffId" placeholder="T005" />
+                    </div>
+                    <div class="field">
+                        <label>Assigned Role</label>
+                        <select id="newStaffRole"></select>
+                    </div>
+                    <div class="field" style="grid-column: span 2;">
+                        <label>Full Name</label>
+                        <input type="text" id="newStaffName" placeholder="e.g. Tariq Ahmed" />
+                    </div>
+                    <div class="field" style="grid-column: span 2;">
+                        <label>Default Subject / Speciality</label>
+                        <input type="text" id="newStaffSubject" placeholder="e.g. Mathematics" />
+                    </div>
+                </div>
+                <button class="btn btn-success" id="saveStaffBtn" style="width: 100%; justify-content: center; margin-bottom: 14px;"><i class="fas fa-user-plus"></i> Add Staff Member</button>
+                
+                <div style="max-height: 240px; overflow-y: auto;" id="staffDirectoryList"></div>
+            </div>
+
+            <!-- Tab 2: Role Management -->
+            <div id="tabRolesContent" style="display: none;">
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="newRoleInput" placeholder="Enter role name (e.g. Substitute)" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" />
+                    <button class="btn btn-primary" id="addRoleBtn"><i class="fas fa-plus"></i> Add Role</button>
+                </div>
+                <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Note: Any staff member assigned to any role can still be selected as a class instructor.</p>
+                <div style="max-height: 240px; overflow-y: auto;" id="rolesList"></div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                <button class="btn btn-outline" id="closeModalBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        (function() {
+            // Master Roles
+            let masterRoles = ['Instructor', 'Coordinator', 'Mentor', 'Substitute', 'Admin'];
+
+            // Master Staff Directory
+            let masterStaff = [
+                { id: 'T001', name: 'Ayesha Rahman', role: 'Instructor', subject: 'English' },
+                { id: 'T002', name: 'James Carter', role: 'Instructor', subject: 'Mathematics' },
+                { id: 'T003', name: 'Sophia Lee', role: 'Mentor', subject: 'Science' },
+                { id: 'C001', name: 'Rahim Khan', role: 'Coordinator', subject: 'Coordination' },
+                { id: 'C002', name: 'Fatima Noor', role: 'Coordinator', subject: 'Coordination' }
+            ];
+
+            let records = [];
+
+            // DOM Elements
+            const instructorSelect = document.getElementById('instructorSelect');
+            const coordinatorSelect = document.getElementById('coordinatorSelect');
+            const instructorIdInput = document.getElementById('instructorId');
+            const subjectInput = document.getElementById('subjectGrade');
+            const dateInput = document.getElementById('entryDate');
+            const tableBody = document.getElementById('tableBody');
+            const toast = document.getElementById('toast');
+
+            function formatExcelDate(dateStr) {
+                if (!dateStr) return '';
+                const [year, month, day] = dateStr.split('-');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${String(day).padStart(2, '0')}-${months[parseInt(month, 10) - 1]}-${year}`;
+            }
+
+            function getDayOfWeek(dateStr) {
+                if (!dateStr) return '';
+                const [year, month, day] = dateStr.split('-');
+                const d = new Date(year, parseInt(month, 10) - 1, day);
+                return d.toLocaleDateString('en-US', { weekday: 'long' });
+            }
+
+            function calculateHours(inTime, outTime) {
+                if (!inTime || !outTime) return '0.0';
+                const [inH, inM] = inTime.split(':').map(Number);
+                const [outH, outM] = outTime.split(':').map(Number);
+                let diffMin = (outH * 60 + outM) - (inH * 60 + inM);
+                if (diffMin < 0) diffMin += 24 * 60;
+                return (diffMin / 60).toFixed(1).replace(/\.0$/, '');
+            }
+
+            function showToast(msg) {
+                toast.textContent = msg;
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 2200);
+            }
+
+            function copyToClipboard(text, msg) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(msg || 'Copied! Ready to paste into Excel.');
+                }).catch(() => {
+                    const fallback = document.createElement('textarea');
+                    fallback.value = text;
+                    document.body.appendChild(fallback);
+                    fallback.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(fallback);
+                    showToast(msg || 'Copied to clipboard!');
+                });
+            }
+
+            function buildTsvRow(item) {
+                return [
+                    item.formattedDate,
+                    item.dayOfWeek,
+                    item.instructorId,
+                    item.instructorName,
+                    item.inTime,
+                    item.outTime,
+                    item.hours,
+                    item.classes,
+                    item.subject,
+                    item.coordinator
+                ].join('\t');
+            }
+
+            // Sync Dropdown Elements
+            function populateDropdowns() {
+                const currentInstructor = instructorSelect.value;
+                const currentCoord = coordinatorSelect.value;
+
+                instructorSelect.innerHTML = '';
+                coordinatorSelect.innerHTML = '';
+
+                // Anyone can instruct/take classes regardless of role
+                masterStaff.forEach(staff => {
+                    const opt = document.createElement('option');
+                    opt.value = staff.name;
+                    opt.textContent = `${staff.name} (${staff.role})`;
+                    instructorSelect.appendChild(opt);
+                });
+
+                // Coordinators (or anyone with Coordinator in their title/role)
+                const coordinators = masterStaff.filter(s => s.role.toLowerCase().includes('coord') || s.role === 'Admin');
+                const pool = coordinators.length > 0 ? coordinators : masterStaff;
+                pool.forEach(staff => {
+                    const opt = document.createElement('option');
+                    opt.value = staff.name.startsWith('Coordinator -') ? staff.name : `Coordinator - ${staff.name}`;
+                    opt.textContent = opt.value;
+                    coordinatorSelect.appendChild(opt);
+                });
+
+                if (currentInstructor && [...instructorSelect.options].some(o => o.value === currentInstructor)) {
+                    instructorSelect.value = currentInstructor;
+                }
+                if (currentCoord && [...coordinatorSelect.options].some(o => o.value === currentCoord)) {
+                    coordinatorSelect.value = currentCoord;
+                }
+
+                syncInstructorFields();
+            }
+
+            function syncInstructorFields() {
+                const selected = masterStaff.find(s => s.name === instructorSelect.value);
+                if (selected) {
+                    instructorIdInput.value = selected.id || '';
+                    if (!subjectInput.value || subjectInput.dataset.autofilled === 'true') {
+                        subjectInput.value = selected.subject || '';
+                        subjectInput.dataset.autofilled = 'true';
+                    }
+                }
+            }
+
+            function renderTable() {
+                localStorage.setItem('excel_attendance_records', JSON.stringify(records));
+                if (records.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:#94a3b8; padding: 24px;">No records available.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = records.map((r, i) => `
+                    <tr>
+                        <td class="cell-date">${r.formattedDate}</td>
+                        <td>${r.dayOfWeek}</td>
+                        <td class="cell-id">${r.instructorId}</td>
+                        <td style="font-weight: 500;">${r.instructorName}</td>
+                        <td class="cell-time">${r.inTime}</td>
+                        <td class="cell-time">${r.outTime}</td>
+                        <td style="font-weight: 600;">${r.hours}</td>
+                        <td>${r.classes}</td>
+                        <td><i>${r.subject}</i></td>
+                        <td><i>${r.coordinator}</i></td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            <button class="btn btn-clipboard btn-sm" title="Copy Row" onclick="window.copyRow(${i})"><i class="fas fa-copy"></i></button>
+                            <button class="btn btn-outline btn-sm" title="Delete" onclick="window.deleteRow(${i})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            function renderStaffModalList() {
+                const container = document.getElementById('staffDirectoryList');
+                container.innerHTML = masterStaff.map((staff, idx) => `
+                    <div class="list-item">
+                        <div>
+                            <div style="font-weight:600; font-size:13px; color:#0f2d4a;">${staff.name} <span style="font-size:11px; color:#64748b;">(${staff.id})</span></div>
+                            <div style="font-size:11px; color:#475569;">Speciality: ${staff.subject || 'N/A'}</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <select onchange="window.updateStaffRole(${idx}, this.value)" style="font-size:11px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                ${masterRoles.map(r => `<option value="${r}" ${staff.role === r ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>
+                            <button class="btn btn-danger btn-sm" onclick="window.deleteStaff(${idx})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function renderRolesModalList() {
+                const container = document.getElementById('rolesList');
+                container.innerHTML = masterRoles.map((role, idx) => `
+                    <div class="list-item">
+                        <span class="role-tag">${role}</span>
+                        <button class="btn btn-danger btn-sm" onclick="window.deleteRole(${idx})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+
+                // Sync new staff role select dropdown
+                const roleSelect = document.getElementById('newStaffRole');
+                roleSelect.innerHTML = masterRoles.map(r => `<option value="${r}">${r}</option>`).join('');
+            }
+
+            // Window-scoped hooks
+            window.copyRow = function(index) {
+                const r = records[index];
+                if (r) copyToClipboard(buildTsvRow(r), `Copied ${r.instructorName}'s record!`);
+            };
+
+            window.deleteRow = function(index) {
+                records.splice(index, 1);
+                renderTable();
+            };
+
+            window.updateStaffRole = function(index, newRole) {
+                masterStaff[index].role = newRole;
+                localStorage.setItem('master_staff_list', JSON.stringify(masterStaff));
+                populateDropdowns();
+                showToast('Role updated.');
+            };
+
+            window.deleteStaff = function(index) {
+                if (masterStaff.length <= 1) return alert('Directory must contain at least one person.');
+                masterStaff.splice(index, 1);
+                localStorage.setItem('master_staff_list', JSON.stringify(masterStaff));
+                renderStaffModalList();
+                populateDropdowns();
+            };
+
+            window.deleteRole = function(index) {
+                if (masterRoles.length <= 1) return alert('You must retain at least one active role.');
+                masterRoles.splice(index, 1);
+                localStorage.setItem('master_roles_list', JSON.stringify(masterRoles));
+                renderRolesModalList();
+                populateDropdowns();
+            };
+
+            function init() {
+                dateInput.value = new Date().toISOString().slice(0, 10);
+
+                // Load roles
+                const storedRoles = localStorage.getItem('master_roles_list');
+                if (storedRoles) {
+                    try { masterRoles = JSON.parse(storedRoles); } catch (e) {}
+                }
+
+                // Load staff
+                const storedStaff = localStorage.getItem('master_staff_list');
+                if (storedStaff) {
+                    try { masterStaff = JSON.parse(storedStaff); } catch (e) {}
+                }
+
+                // Load attendance records
+                const storedRecords = localStorage.getItem('excel_attendance_records');
+                if (storedRecords) {
+                    try { records = JSON.parse(storedRecords); } catch (e) {}
+                } else {
+                    records.push({
+                        formattedDate: '04-Jan-2026',
+                        dayOfWeek: 'Sunday',
+                        instructorId: 'T001',
+                        instructorName: 'Ayesha Rahman',
+                        inTime: '16:00',
+                        outTime: '17:30',
+                        hours: '1.5',
+                        classes: '2',
+                        subject: 'English',
+                        coordinator: 'Coordinator - Rahim'
+                    });
+                }
+
+                populateDropdowns();
+                renderTable();
+
+                // Select and Subject Listeners
+                instructorSelect.addEventListener('change', () => {
+                    subjectInput.dataset.autofilled = 'false';
+                    syncInstructorFields();
+                });
+                
+                subjectInput.addEventListener('input', () => {
+                    subjectInput.dataset.autofilled = 'false';
+                });
+
+                // Add record to table
+                document.getElementById('addRecordBtn').addEventListener('click', () => {
+                    const dateVal = dateInput.value;
+                    const instructorName = instructorSelect.value;
+                    const instructorId = instructorIdInput.value;
+                    const inTime = document.getElementById('inTime').value;
+                    const outTime = document.getElementById('outTime').value;
+                    const classes = document.getElementById('classesTaken').value || '1';
+                    const subject = subjectInput.value.trim() || 'General';
+                    const coordinator = coordinatorSelect.value;
+
+                    if (!dateVal || !instructorName) {
+                        alert('Please provide a date and select an instructor.');
+                        return;
+                    }
+
+                    records.push({
+                        formattedDate: formatExcelDate(dateVal),
+                        dayOfWeek: getDayOfWeek(dateVal),
+                        instructorId,
+                        instructorName,
+                        inTime,
+                        outTime,
+                        hours: calculateHours(inTime, outTime),
+                        classes,
+                        subject,
+                        coordinator
+                    });
+
+                    renderTable();
+                    showToast('Row added successfully!');
+                });
+
+                // Excel & CSV Operations
+                document.getElementById('copyAllBtn').addEventListener('click', () => {
+                    if (records.length === 0) return alert('No records to copy.');
+                    const tsv = records.map(buildTsvRow).join('\n');
+                    copyToClipboard(tsv, 'All records copied! Paste directly into Excel.');
+                });
+
+                document.getElementById('exportBtn').addEventListener('click', () => {
+                    if (records.length === 0) return alert('No records to export.');
+                    const headers = ['Date', 'Day of Week', 'Instructor ID', 'Instructor Name', 'Check-in Time', 'Check-out Time', 'Total Hours Spent', 'Number of Classes Taken', 'Subject / Grade Level Taught', 'Coordinator Name'];
+                    const rows = records.map(r => [
+                        `"${r.formattedDate}"`, `"${r.dayOfWeek}"`, `"${r.instructorId}"`, `"${r.instructorName}"`,
+                        `"${r.inTime}"`, `"${r.outTime}"`, `"${r.hours}"`, `"${r.classes}"`,
+                        `"${r.subject}"`, `"${r.coordinator}"`
+                    ].join(','));
+                    const csvContent = [headers.join(','), ...rows].join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `Attendance_${dateInput.value}.csv`;
+                    link.click();
+                });
+
+                document.getElementById('clearAllBtn').addEventListener('click', () => {
+                    if (confirm('Are you sure you want to clear the table?')) {
+                        records = [];
+                        renderTable();
+                    }
+                });
+
+                // Modal & Tab Handling
+                const modal = document.getElementById('managementModal');
+                const tabStaffBtn = document.getElementById('tabStaffBtn');
+                const tabRolesBtn = document.getElementById('tabRolesBtn');
+                const tabStaffContent = document.getElementById('tabStaffContent');
+                const tabRolesContent = document.getElementById('tabRolesContent');
+
+                document.getElementById('openDirectoryModalBtn').addEventListener('click', () => {
+                    renderStaffModalList();
+                    renderRolesModalList();
+                    modal.classList.add('active');
+                });
+                
+                document.getElementById('closeModalBtn').addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+
+                tabStaffBtn.addEventListener('click', () => {
+                    tabStaffBtn.classList.add('active');
+                    tabRolesBtn.classList.remove('active');
+                    tabStaffContent.style.display = 'block';
+                    tabRolesContent.style.display = 'none';
+                });
+
+                tabRolesBtn.addEventListener('click', () => {
+                    tabRolesBtn.classList.add('active');
+                    tabStaffBtn.classList.remove('active');
+                    tabRolesContent.style.display = 'block';
+                    tabStaffContent.style.display = 'none';
+                });
+
+                // Add Role
+                document.getElementById('addRoleBtn').addEventListener('click', () => {
+                    const roleInput = document.getElementById('newRoleInput');
+                    const roleName = roleInput.value.trim();
+                    if (!roleName) return alert('Please enter a role name.');
+                    if (masterRoles.map(r => r.toLowerCase()).includes(roleName.toLowerCase())) {
+                        return alert('Role already exists.');
+                    }
+
+                    masterRoles.push(roleName);
+                    localStorage.setItem('master_roles_list', JSON.stringify(masterRoles));
+                    roleInput.value = '';
+                    renderRolesModalList();
+                    showToast(`Role "${roleName}" added.`);
+                });
+
+                // Add Staff
+                document.getElementById('saveStaffBtn').addEventListener('click', () => {
+                    const id = document.getElementById('newStaffId').value.trim();
+                    const name = document.getElementById('newStaffName').value.trim();
+                    const role = document.getElementById('newStaffRole').value;
+                    const subject = document.getElementById('newStaffSubject').value.trim();
+
+                    if (!id || !name) return alert('Staff ID and Name are required.');
+                    if (masterStaff.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+                        return alert('A staff member with this name already exists.');
+                    }
+
+                    masterStaff.push({ id, name, role, subject });
+                    localStorage.setItem('master_staff_list', JSON.stringify(masterStaff));
+                    
+                    document.getElementById('newStaffId').value = '';
+                    document.getElementById('newStaffName').value = '';
+                    document.getElementById('newStaffSubject').value = '';
+                    
+                    renderStaffModalList();
+                    populateDropdowns();
+                    showToast(`Added ${name} to directory.`);
+                });
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
