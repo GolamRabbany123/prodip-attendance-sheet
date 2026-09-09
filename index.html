@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Instructor & Coordinator Attendance Register</title>
+    <title>Instructor Attendance & Verification Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background: #edf2f7; min-height: 100vh; display: flex; justify-content: center; padding: 24px 16px; }
-        .app { max-width: 1480px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 20, 40, 0.08); padding: 24px; }
+        .app { max-width: 1700px; width: 100%; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 20, 40, 0.08); padding: 24px; }
         
         /* Header */
         .app-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #eef2f6; }
@@ -27,31 +27,59 @@
         .btn-clipboard:hover { background: #0369a1; }
         .btn-danger { background: #dc2626; color: white; border-color: #dc2626; }
         .btn-danger:hover { background: #b91c1c; }
+        .btn-warning { background: #d97706; color: white; border-color: #d97706; }
+        .btn-warning:hover { background: #b45309; }
         .btn-sm { padding: 4px 8px; font-size: 12px; }
+        
+        /* "Now" Button */
+        .btn-now {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+            font-weight: 700;
+            padding: 0 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-now:hover {
+            background: #0284c7;
+            color: white;
+            border-color: #0284c7;
+        }
 
         /* Toolbar Form */
-        .toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; background: #f8fafd; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e9f2; align-items: end; }
+        .toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; background: #f8fafd; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e2e9f2; align-items: end; }
         .field { display: flex; flex-direction: column; gap: 4px; }
         .field label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; }
-        .field select, .field input { background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 13px; color: #0b1e33; outline: none; width: 100%; }
-        .field select:focus, .field input:focus { border-color: #1a4d7a; }
+        .field select, .field input, .field textarea { background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 13px; color: #0b1e33; outline: none; width: 100%; }
+        .field select:focus, .field input:focus, .field textarea:focus { border-color: #1a4d7a; }
+        .input-with-action { display: flex; gap: 4px; }
+        .input-with-action input { flex: 1; }
 
-        /* Excel-Matched Table */
-        .table-wrap { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 6px; background: white; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1100px; }
-        th { background: #1a4d7a; color: #ffffff; font-weight: 600; padding: 9px 12px; text-align: left; border: 1px solid #163e63; white-space: nowrap; }
-        td { padding: 8px 12px; border: 1px solid #e2e8f0; vertical-align: middle; color: #334155; }
+        /* Range Bar */
+        .range-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #f1f5f9; padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+        .range-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .range-controls label { font-size: 12px; font-weight: 700; color: #334155; }
+        .range-controls input { width: 70px; padding: 6px 8px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; text-align: center; }
+
+        /* Excel-Style Table */
+        .table-wrap { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 6px; background: white; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1550px; }
+        th { background: #1a4d7a; color: #ffffff; font-weight: 600; padding: 8px 10px; text-align: left; border: 1px solid #163e63; white-space: nowrap; font-size: 11.5px; }
+        td { padding: 7px 10px; border: 1px solid #e2e8f0; vertical-align: middle; color: #334155; }
         tr:nth-child(even) { background: #f8fafc; }
         tr:hover td { background: #f1f5f9; }
+        .cell-index { font-weight: 700; color: #1a4d7a; text-align: center; width: 40px; background: #f8fafc; }
         .cell-date, .cell-time { font-style: italic; color: #475569; }
         .cell-id { font-style: italic; color: #64748b; font-weight: 600; }
+        .cell-remarks { font-style: italic; color: #334155; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .badge-active { background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 
-        /* Modal Overlay & Card */
+        /* Modals */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(2px); z-index: 999; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal { background: white; border-radius: 14px; padding: 24px; max-width: 600px; width: 94%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        
-        /* Modal Tabs */
+        .modal { background: white; border-radius: 14px; padding: 24px; max-width: 650px; width: 94%; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
         .modal-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; }
         .tab-btn { padding: 8px 14px; border: none; background: transparent; font-weight: 600; font-size: 13px; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
         .tab-btn.active { color: #1a4d7a; border-color: #1a4d7a; }
@@ -59,74 +87,117 @@
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; }
         .role-tag { display: inline-block; padding: 2px 8px; background: #e2e8f0; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155; }
 
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .app { padding: 14px; }
+            .header-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+            .toolbar { grid-template-columns: 1fr; }
+            .range-bar { flex-direction: column; align-items: flex-start; }
+        }
+
         #toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: white; padding: 10px 18px; border-radius: 6px; font-size: 13px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
     </style>
 </head>
 <body>
     <div class="app">
         <div class="app-header">
-            <h1><i class="fas fa-calendar-check"></i> Instructor Attendance Register</h1>
+            <h1><i class="fas fa-calendar-check"></i> Instructor Attendance & Validation Register</h1>
             <div class="header-actions">
-                <button class="btn btn-outline btn-sm" id="openDirectoryModalBtn"><i class="fas fa-users-cog"></i> Manage Staff & Roles</button>
+                <button class="btn btn-outline btn-sm" id="openDirectoryModalBtn"><i class="fas fa-users-cog"></i> Master Staff & Roles</button>
                 <button class="btn btn-clipboard btn-sm" id="copyAllBtn"><i class="fas fa-copy"></i> Copy All for Excel</button>
-                <button class="btn btn-outline btn-sm" id="exportBtn"><i class="fas fa-file-csv"></i> Export CSV</button>
+                <button class="btn btn-outline btn-sm" id="exportBtn"><i class="fas fa-file-csv"></i> Export All CSV</button>
                 <button class="btn btn-danger btn-sm" id="clearAllBtn"><i class="fas fa-trash-alt"></i> Clear Table</button>
             </div>
         </div>
 
-        <!-- Form Toolbar -->
+        <!-- Attendance Toolbar -->
         <div class="toolbar">
             <div class="field">
-                <label>Date</label>
+                <label>Date (Session)</label>
                 <input type="date" id="entryDate" />
             </div>
             <div class="field">
-                <label>Instructor Name</label>
+                <label>Instructor</label>
                 <select id="instructorSelect"></select>
             </div>
-            <div class="field">
-                <label>Instructor ID</label>
-                <input type="text" id="instructorId" placeholder="T001" readonly style="background:#f1f5f9;" />
+            <div class="field" style="max-width: 100px;">
+                <label>Inst. ID</label>
+                <input type="text" id="instructorId" readonly style="background:#f1f5f9;" />
             </div>
             <div class="field">
-                <label>Check-in</label>
-                <input type="time" id="inTime" value="16:00" />
+                <label>Replacement (Optional)</label>
+                <select id="replacementSelect"></select>
             </div>
-            <div class="field">
+            <div class="field" style="max-width: 110px;">
+                <label>Repl. ID</label>
+                <input type="text" id="replacementId" readonly style="background:#f1f5f9;" />
+            </div>
+            <div class="field" style="max-width: 175px;">
+                <label>Check-in Time</label>
+                <div class="input-with-action">
+                    <input type="time" id="inTime" />
+                    <button class="btn btn-now" id="nowTimeBtn" title="Set to Current Time"><i class="fas fa-clock"></i> Now</button>
+                </div>
+            </div>
+            <div class="field" style="max-width: 100px;">
                 <label>Check-out</label>
-                <input type="time" id="outTime" value="17:30" />
+                <input type="time" id="outTime" placeholder="--:--" />
             </div>
-            <div class="field">
+            <div class="field" style="max-width: 80px;">
                 <label>Classes</label>
-                <input type="number" id="classesTaken" value="1" min="1" />
+                <input type="number" id="classesTaken" value="1" min="0" />
             </div>
             <div class="field">
-                <label>Subject / Grade</label>
-                <input type="text" id="subjectGrade" placeholder="English" />
+                <label>Validator</label>
+                <select id="validatorSelect"></select>
             </div>
-            <div class="field">
-                <label>Coordinator Name</label>
-                <select id="coordinatorSelect"></select>
+            <div class="field" style="max-width: 90px;">
+                <label>Val. Code</label>
+                <input type="text" id="validatorCode" readonly style="background:#f1f5f9;" />
             </div>
-            <button class="btn btn-success" id="addRecordBtn"><i class="fas fa-plus"></i> Add Row</button>
+            <div class="field" style="grid-column: span 2;">
+                <label>Remarks / What Was Covered</label>
+                <input type="text" id="remarksInput" placeholder="Topics covered, notes..." />
+            </div>
+            <button class="btn btn-success" id="addRecordBtn"><i class="fas fa-plus"></i> Save Row</button>
         </div>
 
-        <!-- Attendance Sheet Table -->
+        <!-- Range Export Bar -->
+        <div class="range-bar">
+            <div class="range-controls">
+                <i class="fas fa-filter" style="color: #1a4d7a;"></i>
+                <label>From Row #:</label>
+                <input type="number" id="rangeStart" min="1" value="1" />
+                <label>To Row #:</label>
+                <input type="number" id="rangeEnd" min="1" value="1" />
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-clipboard btn-sm" id="copyRangeBtn"><i class="fas fa-copy"></i> Copy Range for Excel</button>
+                <button class="btn btn-primary btn-sm" id="exportRangeBtn"><i class="fas fa-download"></i> Export Range CSV</button>
+            </div>
+        </div>
+
+        <!-- Excel-Matched Table (Cols A to N) -->
         <div class="table-wrap">
             <table id="attendanceTable">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Day of Week</th>
-                        <th>Instructor ID</th>
-                        <th>Instructor Name</th>
-                        <th>Check-in Time</th>
-                        <th>Check-out Time</th>
-                        <th>Total Hours Spent</th>
-                        <th>Number of Classes Taken</th>
-                        <th>Subject / Grade Level Taught</th>
-                        <th>Coordinator Name</th>
-                        <th style="text-align: center; width: 110px;">Excel Action</th>
+                        <th style="width: 35px; text-align: center;">#</th>
+                        <th>Date (A)</th>
+                        <th>Day of Week (B)</th>
+                        <th>Instructor (C)</th>
+                        <th>Instructor ID (D)</th>
+                        <th>Replacement (if any) (E)</th>
+                        <th>Replacement ID (F)</th>
+                        <th>Check-in Time (G)</th>
+                        <th>Check-out Time (H)</th>
+                        <th>Total Hours Spent (I)</th>
+                        <th>Number of Classes Taken (J)</th>
+                        <th>Credited To (Hours/Classes) (K)</th>
+                        <th>Validated By (Code) (L)</th>
+                        <th>Validated By (Name) (M)</th>
+                        <th>Remarks / What Was Covered (N)</th>
+                        <th style="text-align: center; width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -134,11 +205,53 @@
         </div>
     </div>
 
-    <!-- Management Modal with Staff & Role Tabs -->
+    <!-- Edit Entry Modal -->
+    <div class="modal-overlay" id="editEntryModal">
+        <div class="modal">
+            <h2 style="font-size: 18px; color: #0f2d4a; margin-bottom: 14px;"><i class="fas fa-edit"></i> Edit Attendance Record</h2>
+            <input type="hidden" id="editIndex" />
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div class="field">
+                    <label>Replacement</label>
+                    <select id="editReplacementSelect"></select>
+                </div>
+                <div class="field">
+                    <label>Replacement ID</label>
+                    <input type="text" id="editReplacementId" readonly style="background:#f1f5f9;" />
+                </div>
+                <div class="field">
+                    <label>Check-in Time</label>
+                    <input type="time" id="editInTime" />
+                </div>
+                <div class="field">
+                    <label>Check-out Time</label>
+                    <input type="time" id="editOutTime" />
+                </div>
+                <div class="field">
+                    <label>Number of Classes Taken</label>
+                    <input type="number" id="editClasses" min="0" />
+                </div>
+                <div class="field">
+                    <label>Validated By</label>
+                    <select id="editValidatorSelect"></select>
+                </div>
+                <div class="field" style="grid-column: span 2;">
+                    <label>Remarks / What Was Covered</label>
+                    <input type="text" id="editRemarks" />
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                <button class="btn btn-outline" id="cancelEditBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff & Role Management Modal -->
     <div class="modal-overlay" id="managementModal">
         <div class="modal">
             <div class="modal-tabs">
-                <button class="tab-btn active" id="tabStaffBtn"><i class="fas fa-user-friends"></i> Staff Directory</button>
+                <button class="tab-btn active" id="tabStaffBtn"><i class="fas fa-user-friends"></i> Master Staff</button>
                 <button class="tab-btn" id="tabRolesBtn"><i class="fas fa-shield-alt"></i> Role Management</button>
             </div>
 
@@ -146,20 +259,16 @@
             <div id="tabStaffContent">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
                     <div class="field">
-                        <label>Staff ID</label>
-                        <input type="text" id="newStaffId" placeholder="T005" />
+                        <label>Staff ID (e.g. I001, C001)</label>
+                        <input type="text" id="newStaffId" placeholder="I006" />
                     </div>
                     <div class="field">
-                        <label>Assigned Role</label>
+                        <label>Role</label>
                         <select id="newStaffRole"></select>
                     </div>
                     <div class="field" style="grid-column: span 2;">
                         <label>Full Name</label>
-                        <input type="text" id="newStaffName" placeholder="e.g. Tariq Ahmed" />
-                    </div>
-                    <div class="field" style="grid-column: span 2;">
-                        <label>Default Subject / Speciality</label>
-                        <input type="text" id="newStaffSubject" placeholder="e.g. Mathematics" />
+                        <input type="text" id="newStaffName" placeholder="e.g. Farhan Kabir" />
                     </div>
                 </div>
                 <button class="btn btn-success" id="saveStaffBtn" style="width: 100%; justify-content: center; margin-bottom: 14px;"><i class="fas fa-user-plus"></i> Add Staff Member</button>
@@ -170,10 +279,9 @@
             <!-- Tab 2: Role Management -->
             <div id="tabRolesContent" style="display: none;">
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <input type="text" id="newRoleInput" placeholder="Enter role name (e.g. Substitute)" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" />
+                    <input type="text" id="newRoleInput" placeholder="Enter role name" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;" />
                     <button class="btn btn-primary" id="addRoleBtn"><i class="fas fa-plus"></i> Add Role</button>
                 </div>
-                <p style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Note: Any staff member assigned to any role can still be selected as a class instructor.</p>
                 <div style="max-height: 240px; overflow-y: auto;" id="rolesList"></div>
             </div>
 
@@ -187,28 +295,61 @@
 
     <script>
         (function() {
-            // Master Roles
             let masterRoles = ['Instructor', 'Coordinator', 'Mentor', 'Substitute', 'Admin'];
 
-            // Master Staff Directory
             let masterStaff = [
-                { id: 'T001', name: 'Ayesha Rahman', role: 'Instructor', subject: 'English' },
-                { id: 'T002', name: 'James Carter', role: 'Instructor', subject: 'Mathematics' },
-                { id: 'T003', name: 'Sophia Lee', role: 'Mentor', subject: 'Science' },
-                { id: 'C001', name: 'Rahim Khan', role: 'Coordinator', subject: 'Coordination' },
-                { id: 'C002', name: 'Fatima Noor', role: 'Coordinator', subject: 'Coordination' }
+                { id: 'I001', name: 'Ayesha Rahman', role: 'Instructor' },
+                { id: 'I002', name: 'Farhan Kabir', role: 'Instructor' },
+                { id: 'I003', name: 'Nusrat Jahan', role: 'Instructor' },
+                { id: 'I004', name: 'Rakibul Islam', role: 'Instructor' },
+                { id: 'I005', name: 'Tanvir Ahmed', role: 'Instructor' },
+                { id: 'C001', name: 'Farhan Kabir', role: 'Coordinator' }
             ];
 
             let records = [];
 
             // DOM Elements
             const instructorSelect = document.getElementById('instructorSelect');
-            const coordinatorSelect = document.getElementById('coordinatorSelect');
             const instructorIdInput = document.getElementById('instructorId');
-            const subjectInput = document.getElementById('subjectGrade');
+            const replacementSelect = document.getElementById('replacementSelect');
+            const replacementIdInput = document.getElementById('replacementId');
+            const validatorSelect = document.getElementById('validatorSelect');
+            const validatorCodeInput = document.getElementById('validatorCode');
             const dateInput = document.getElementById('entryDate');
+            const inTimeInput = document.getElementById('inTime');
+            const outTimeInput = document.getElementById('outTime');
+            const classesInput = document.getElementById('classesTaken');
+            const remarksInput = document.getElementById('remarksInput');
             const tableBody = document.getElementById('tableBody');
             const toast = document.getElementById('toast');
+            const rangeStart = document.getElementById('rangeStart');
+            const rangeEnd = document.getElementById('rangeEnd');
+
+            // Edit Modal DOM
+            const editModal = document.getElementById('editEntryModal');
+            const editIndexInput = document.getElementById('editIndex');
+            const editReplacementSelect = document.getElementById('editReplacementSelect');
+            const editReplacementId = document.getElementById('editReplacementId');
+            const editInTimeInput = document.getElementById('editInTime');
+            const editOutTimeInput = document.getElementById('editOutTime');
+            const editClassesInput = document.getElementById('editClasses');
+            const editValidatorSelect = document.getElementById('editValidatorSelect');
+            const editRemarksInput = document.getElementById('editRemarks');
+
+            function getLocalTodayDate() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function getLocalCurrentTime() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                return `${hours}:${minutes}`;
+            }
 
             function formatExcelDate(dateStr) {
                 if (!dateStr) return '';
@@ -225,7 +366,7 @@
             }
 
             function calculateHours(inTime, outTime) {
-                if (!inTime || !outTime) return '0.0';
+                if (!inTime || !outTime) return '';
                 const [inH, inM] = inTime.split(':').map(Number);
                 const [outH, outM] = outTime.split(':').map(Number);
                 let diffMin = (outH * 60 + outM) - (inH * 60 + inM);
@@ -255,92 +396,232 @@
 
             function buildTsvRow(item) {
                 return [
-                    item.formattedDate,
-                    item.dayOfWeek,
-                    item.instructorId,
-                    item.instructorName,
-                    item.inTime,
-                    item.outTime,
-                    item.hours,
-                    item.classes,
-                    item.subject,
-                    item.coordinator
+                    item.formattedDate,             // A: Date
+                    item.dayOfWeek,                 // B: Day of Week
+                    item.instructorFormatted,       // C: Instructor
+                    item.instructorId,              // D: Instructor ID
+                    item.replacementFormatted || '',// E: Replacement (if any)
+                    item.replacementId || '',       // F: Replacement ID
+                    item.inTime || '',              // G: Check-in Time
+                    item.outTime || '',             // H: Check-out Time
+                    item.hours || '',               // I: Total Hours Spent
+                    item.classes || '',             // J: Number of Classes Taken
+                    item.creditedTo,                // K: Credited To (Hours/Classes)
+                    item.validatorCode,             // L: Validated By (Code)
+                    item.validatorName,             // M: Validated By (Name)
+                    item.remarks || ''              // N: Remarks / What Was Covered
                 ].join('\t');
             }
 
-            // Sync Dropdown Elements
+            function getSelectedRangeIndices() {
+                const total = records.length;
+                if (total === 0) return null;
+
+                let start = parseInt(rangeStart.value, 10);
+                let end = parseInt(rangeEnd.value, 10);
+
+                if (isNaN(start) || start < 1) start = 1;
+                if (isNaN(end) || end > total) end = total;
+                if (start > end) {
+                    const temp = start;
+                    start = end;
+                    end = temp;
+                }
+
+                return { startIdx: start - 1, endIdx: end - 1, displayStart: start, displayEnd: end };
+            }
+
             function populateDropdowns() {
-                const currentInstructor = instructorSelect.value;
-                const currentCoord = coordinatorSelect.value;
+                const prevInst = instructorSelect.value;
+                const prevRepl = replacementSelect.value;
+                const prevVal = validatorSelect.value;
 
                 instructorSelect.innerHTML = '';
-                coordinatorSelect.innerHTML = '';
+                replacementSelect.innerHTML = '<option value="">None</option>';
+                editReplacementSelect.innerHTML = '<option value="">None</option>';
+                validatorSelect.innerHTML = '';
+                editValidatorSelect.innerHTML = '';
 
-                // Anyone can instruct/take classes regardless of role
                 masterStaff.forEach(staff => {
-                    const opt = document.createElement('option');
-                    opt.value = staff.name;
-                    opt.textContent = `${staff.name} (${staff.role})`;
-                    instructorSelect.appendChild(opt);
+                    const label = `${staff.name} (${staff.role})`;
+                    
+                    const optInst = document.createElement('option');
+                    optInst.value = staff.name;
+                    optInst.dataset.id = staff.id;
+                    optInst.dataset.formatted = label;
+                    optInst.textContent = label;
+                    instructorSelect.appendChild(optInst);
+
+                    const optRepl = document.createElement('option');
+                    optRepl.value = staff.name;
+                    optRepl.dataset.id = staff.id;
+                    optRepl.dataset.formatted = label;
+                    optRepl.textContent = label;
+                    replacementSelect.appendChild(optRepl.cloneNode(true));
+                    editReplacementSelect.appendChild(optRepl.cloneNode(true));
+
+                    const optVal = document.createElement('option');
+                    optVal.value = staff.name;
+                    optVal.dataset.id = staff.id;
+                    optVal.textContent = `${staff.name} (${staff.id})`;
+                    validatorSelect.appendChild(optVal.cloneNode(true));
+                    editValidatorSelect.appendChild(optVal.cloneNode(true));
                 });
 
-                // Coordinators (or anyone with Coordinator in their title/role)
-                const coordinators = masterStaff.filter(s => s.role.toLowerCase().includes('coord') || s.role === 'Admin');
-                const pool = coordinators.length > 0 ? coordinators : masterStaff;
-                pool.forEach(staff => {
-                    const opt = document.createElement('option');
-                    opt.value = staff.name.startsWith('Coordinator -') ? staff.name : `Coordinator - ${staff.name}`;
-                    opt.textContent = opt.value;
-                    coordinatorSelect.appendChild(opt);
-                });
-
-                if (currentInstructor && [...instructorSelect.options].some(o => o.value === currentInstructor)) {
-                    instructorSelect.value = currentInstructor;
-                }
-                if (currentCoord && [...coordinatorSelect.options].some(o => o.value === currentCoord)) {
-                    coordinatorSelect.value = currentCoord;
-                }
+                if (prevInst && [...instructorSelect.options].some(o => o.value === prevInst)) instructorSelect.value = prevInst;
+                if (prevRepl && [...replacementSelect.options].some(o => o.value === prevRepl)) replacementSelect.value = prevRepl;
+                if (prevVal && [...validatorSelect.options].some(o => o.value === prevVal)) validatorSelect.value = prevVal;
 
                 syncInstructorFields();
+                syncReplacementFields();
+                syncValidatorFields();
             }
 
             function syncInstructorFields() {
-                const selected = masterStaff.find(s => s.name === instructorSelect.value);
-                if (selected) {
-                    instructorIdInput.value = selected.id || '';
-                    if (!subjectInput.value || subjectInput.dataset.autofilled === 'true') {
-                        subjectInput.value = selected.subject || '';
-                        subjectInput.dataset.autofilled = 'true';
-                    }
-                }
+                const opt = instructorSelect.selectedOptions[0];
+                if (opt) instructorIdInput.value = opt.dataset.id || '';
+            }
+
+            function syncReplacementFields() {
+                const opt = replacementSelect.selectedOptions[0];
+                replacementIdInput.value = (opt && opt.value) ? (opt.dataset.id || '') : '';
+            }
+
+            function syncValidatorFields() {
+                const opt = validatorSelect.selectedOptions[0];
+                if (opt) validatorCodeInput.value = opt.dataset.id || '';
             }
 
             function renderTable() {
+                records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 localStorage.setItem('excel_attendance_records', JSON.stringify(records));
+                
+                if (records.length > 0) {
+                    rangeStart.max = records.length;
+                    rangeEnd.max = records.length;
+                    if (parseInt(rangeEnd.value, 10) > records.length || rangeEnd.value === '1') {
+                        rangeEnd.value = records.length;
+                    }
+                }
+
                 if (records.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:#94a3b8; padding: 24px;">No records available.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="16" style="text-align:center; color:#94a3b8; padding: 24px;">No attendance entries.</td></tr>';
                     return;
                 }
 
-                tableBody.innerHTML = records.map((r, i) => `
-                    <tr>
-                        <td class="cell-date">${r.formattedDate}</td>
-                        <td>${r.dayOfWeek}</td>
-                        <td class="cell-id">${r.instructorId}</td>
-                        <td style="font-weight: 500;">${r.instructorName}</td>
-                        <td class="cell-time">${r.inTime}</td>
-                        <td class="cell-time">${r.outTime}</td>
-                        <td style="font-weight: 600;">${r.hours}</td>
-                        <td>${r.classes}</td>
-                        <td><i>${r.subject}</i></td>
-                        <td><i>${r.coordinator}</i></td>
-                        <td style="text-align: center; white-space: nowrap;">
-                            <button class="btn btn-clipboard btn-sm" title="Copy Row" onclick="window.copyRow(${i})"><i class="fas fa-copy"></i></button>
-                            <button class="btn btn-outline btn-sm" title="Delete" onclick="window.deleteRow(${i})"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
+                tableBody.innerHTML = records.map((r, i) => {
+                    const isOutMissing = !r.outTime;
+                    const outDisplay = isOutMissing 
+                        ? `<button class="btn btn-success btn-sm" onclick="window.quickCheckOut(${i})"><i class="fas fa-clock"></i> Check Out</button>` 
+                        : `<span class="cell-time">${r.outTime}</span>`;
+                    const hoursDisplay = isOutMissing 
+                        ? `<span class="badge-active"><i class="fas fa-hourglass-start"></i> Active</span>` 
+                        : `<span style="font-weight:600;">${r.hours}</span>`;
+
+                    const rowNum = String(i + 1).padStart(2, '0');
+
+                    return `
+                        <tr>
+                            <td class="cell-index">${rowNum}</td>
+                            <td class="cell-date">${r.formattedDate}</td>
+                            <td>${r.dayOfWeek}</td>
+                            <td style="font-weight: 500;">${r.instructorFormatted}</td>
+                            <td class="cell-id">${r.instructorId}</td>
+                            <td>${r.replacementFormatted || '—'}</td>
+                            <td class="cell-id">${r.replacementId || '—'}</td>
+                            <td class="cell-time">${r.inTime}</td>
+                            <td>${outDisplay}</td>
+                            <td>${hoursDisplay}</td>
+                            <td>${r.classes}</td>
+                            <td style="color:#0f5c37; font-weight:500;">${r.creditedTo}</td>
+                            <td class="cell-id">${r.validatorCode}</td>
+                            <td>${r.validatorName}</td>
+                            <td class="cell-remarks" title="${r.remarks || ''}">${r.remarks || '—'}</td>
+                            <td style="text-align: center; white-space: nowrap;">
+                                <button class="btn btn-warning btn-sm" title="Edit Entry" onclick="window.openEditModal(${i})"><i class="fas fa-pencil-alt"></i></button>
+                                <button class="btn btn-clipboard btn-sm" title="Copy Row" onclick="window.copyRow(${i})"><i class="fas fa-copy"></i></button>
+                                <button class="btn btn-outline btn-sm" title="Delete" onclick="window.deleteRow(${i})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
+
+            window.quickCheckOut = function(index) {
+                const currentTime = getLocalCurrentTime();
+                records[index].outTime = currentTime;
+                records[index].hours = calculateHours(records[index].inTime, currentTime);
+                renderTable();
+                showToast(`Checked out at ${currentTime}`);
+            };
+
+            window.openEditModal = function(index) {
+                const r = records[index];
+                if (!r) return;
+                editIndexInput.value = index;
+                
+                editReplacementSelect.value = r.replacementName || '';
+                const replOpt = editReplacementSelect.selectedOptions[0];
+                editReplacementId.value = (replOpt && replOpt.value) ? replOpt.dataset.id : '';
+                
+                editInTimeInput.value = r.inTime || '';
+                editOutTimeInput.value = r.outTime || '';
+                editClassesInput.value = r.classes || 1;
+                editValidatorSelect.value = r.validatorName || '';
+                editRemarksInput.value = r.remarks || '';
+                editModal.classList.add('active');
+            };
+
+            editReplacementSelect.addEventListener('change', () => {
+                const opt = editReplacementSelect.selectedOptions[0];
+                editReplacementId.value = (opt && opt.value) ? opt.dataset.id : '';
+            });
+
+            document.getElementById('cancelEditBtn').addEventListener('click', () => {
+                editModal.classList.remove('active');
+            });
+
+            document.getElementById('saveEditBtn').addEventListener('click', () => {
+                const index = parseInt(editIndexInput.value, 10);
+                if (isNaN(index) || !records[index]) return;
+
+                const inTime = editInTimeInput.value;
+                const outTime = editOutTimeInput.value;
+                const replName = editReplacementSelect.value;
+                const replOpt = editReplacementSelect.selectedOptions[0];
+                const valOpt = editValidatorSelect.selectedOptions[0];
+
+                const replacementFormatted = replName ? replOpt.dataset.formatted : '';
+                const replacementId = replName ? replOpt.dataset.id : '';
+
+                records[index].replacementName = replName;
+                records[index].replacementFormatted = replacementFormatted;
+                records[index].replacementId = replacementId;
+                records[index].creditedTo = replacementFormatted || records[index].instructorFormatted;
+                records[index].inTime = inTime;
+                records[index].outTime = outTime;
+                records[index].hours = calculateHours(inTime, outTime);
+                records[index].classes = editClassesInput.value || '1';
+                records[index].validatorName = valOpt.value;
+                records[index].validatorCode = valOpt.dataset.id;
+                records[index].remarks = editRemarksInput.value.trim();
+
+                editModal.classList.remove('active');
+                renderTable();
+                showToast('Entry updated.');
+            });
+
+            window.copyRow = function(index) {
+                const r = records[index];
+                if (r) copyToClipboard(buildTsvRow(r), `Copied row #${index + 1}! Ready for Excel.`);
+            };
+
+            window.deleteRow = function(index) {
+                if (confirm(`Delete entry #${index + 1}?`)) {
+                    records.splice(index, 1);
+                    renderTable();
+                }
+            };
 
             function renderStaffModalList() {
                 const container = document.getElementById('staffDirectoryList');
@@ -348,7 +629,6 @@
                     <div class="list-item">
                         <div>
                             <div style="font-weight:600; font-size:13px; color:#0f2d4a;">${staff.name} <span style="font-size:11px; color:#64748b;">(${staff.id})</span></div>
-                            <div style="font-size:11px; color:#475569;">Speciality: ${staff.subject || 'N/A'}</div>
                         </div>
                         <div style="display: flex; gap: 6px; align-items: center;">
                             <select onchange="window.updateStaffRole(${idx}, this.value)" style="font-size:11px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
@@ -369,21 +649,9 @@
                     </div>
                 `).join('');
 
-                // Sync new staff role select dropdown
                 const roleSelect = document.getElementById('newStaffRole');
                 roleSelect.innerHTML = masterRoles.map(r => `<option value="${r}">${r}</option>`).join('');
             }
-
-            // Window-scoped hooks
-            window.copyRow = function(index) {
-                const r = records[index];
-                if (r) copyToClipboard(buildTsvRow(r), `Copied ${r.instructorName}'s record!`);
-            };
-
-            window.deleteRow = function(index) {
-                records.splice(index, 1);
-                renderTable();
-            };
 
             window.updateStaffRole = function(index, newRole) {
                 masterStaff[index].role = newRole;
@@ -401,94 +669,171 @@
             };
 
             window.deleteRole = function(index) {
-                if (masterRoles.length <= 1) return alert('You must retain at least one active role.');
+                if (masterRoles.length <= 1) return alert('Retain at least one active role.');
                 masterRoles.splice(index, 1);
                 localStorage.setItem('master_roles_list', JSON.stringify(masterRoles));
                 renderRolesModalList();
                 populateDropdowns();
             };
 
-            function init() {
-                dateInput.value = new Date().toISOString().slice(0, 10);
+            function triggerCsvDownload(csvRows, filename) {
+                const headers = ['Date', 'Day of Week', 'Instructor', 'Instructor ID', 'Replacement (if any)', 'Replacement ID', 'Check-in Time', 'Check-out Time', 'Total Hours Spent', 'Number of Classes Taken', 'Credited To (Hours/Classes)', 'Validated By (Code)', 'Validated By (Name)', 'Remarks / What Was Covered'];
+                const formatted = csvRows.map(r => [
+                    `"${r.formattedDate}"`, `"${r.dayOfWeek}"`, `"${r.instructorFormatted}"`, `"${r.instructorId}"`,
+                    `"${r.replacementFormatted || ''}"`, `"${r.replacementId || ''}"`, `"${r.inTime || ''}"`, `"${r.outTime || ''}"`,
+                    `"${r.hours || ''}"`, `"${r.classes}"`, `"${r.creditedTo}"`, `"${r.validatorCode}"`, `"${r.validatorName}"`,
+                    `"${(r.remarks || '').replace(/"/g, '""')}"`
+                ].join(','));
+                const csvContent = [headers.join(','), ...formatted].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+            }
 
-                // Load roles
+            function resetInputTimes() {
+                dateInput.value = getLocalTodayDate();
+                inTimeInput.value = getLocalCurrentTime();
+                outTimeInput.value = '';
+            }
+
+            function init() {
+                resetInputTimes();
+
+                // Explicit "Now" button listener
+                document.getElementById('nowTimeBtn').addEventListener('click', () => {
+                    const curTime = getLocalCurrentTime();
+                    inTimeInput.value = curTime;
+                    showToast(`Check-in time set to ${curTime}`);
+                });
+
                 const storedRoles = localStorage.getItem('master_roles_list');
                 if (storedRoles) {
                     try { masterRoles = JSON.parse(storedRoles); } catch (e) {}
                 }
 
-                // Load staff
                 const storedStaff = localStorage.getItem('master_staff_list');
                 if (storedStaff) {
                     try { masterStaff = JSON.parse(storedStaff); } catch (e) {}
                 }
 
-                // Load attendance records
                 const storedRecords = localStorage.getItem('excel_attendance_records');
                 if (storedRecords) {
                     try { records = JSON.parse(storedRecords); } catch (e) {}
                 } else {
                     records.push({
+                        createdAt: Date.now() - 20000,
                         formattedDate: '04-Jan-2026',
                         dayOfWeek: 'Sunday',
-                        instructorId: 'T001',
                         instructorName: 'Ayesha Rahman',
+                        instructorFormatted: 'Ayesha Rahman (Instructor)',
+                        instructorId: 'I001',
+                        replacementName: '',
+                        replacementFormatted: '',
+                        replacementId: '',
                         inTime: '16:00',
                         outTime: '17:30',
                         hours: '1.5',
                         classes: '2',
-                        subject: 'English',
-                        coordinator: 'Coordinator - Rahim'
+                        creditedTo: 'Ayesha Rahman (Instructor)',
+                        validatorCode: 'C001',
+                        validatorName: 'Farhan Kabir',
+                        remarks: 'Introduced past tense; group reading exercise.'
+                    }, {
+                        createdAt: Date.now() - 10000,
+                        formattedDate: '09-Jan-2026',
+                        dayOfWeek: 'Friday',
+                        instructorName: 'Ayesha Rahman',
+                        instructorFormatted: 'Ayesha Rahman (Instructor)',
+                        instructorId: 'I001',
+                        replacementName: 'Tanvir Ahmed',
+                        replacementFormatted: 'Tanvir Ahmed (Instructor)',
+                        replacementId: 'I005',
+                        inTime: '16:00',
+                        outTime: '17:30',
+                        hours: '1.5',
+                        classes: '2',
+                        creditedTo: 'Tanvir Ahmed (Instructor)',
+                        validatorCode: 'C001',
+                        validatorName: 'Farhan Kabir',
+                        remarks: 'Ayesha unwell — Tanvir covered. Session went well.'
                     });
                 }
 
                 populateDropdowns();
                 renderTable();
 
-                // Select and Subject Listeners
-                instructorSelect.addEventListener('change', () => {
-                    subjectInput.dataset.autofilled = 'false';
-                    syncInstructorFields();
-                });
-                
-                subjectInput.addEventListener('input', () => {
-                    subjectInput.dataset.autofilled = 'false';
-                });
+                instructorSelect.addEventListener('change', syncInstructorFields);
+                replacementSelect.addEventListener('change', syncReplacementFields);
+                validatorSelect.addEventListener('change', syncValidatorFields);
 
-                // Add record to table
                 document.getElementById('addRecordBtn').addEventListener('click', () => {
                     const dateVal = dateInput.value;
-                    const instructorName = instructorSelect.value;
-                    const instructorId = instructorIdInput.value;
-                    const inTime = document.getElementById('inTime').value;
-                    const outTime = document.getElementById('outTime').value;
-                    const classes = document.getElementById('classesTaken').value || '1';
-                    const subject = subjectInput.value.trim() || 'General';
-                    const coordinator = coordinatorSelect.value;
+                    const instOpt = instructorSelect.selectedOptions[0];
+                    const replOpt = replacementSelect.selectedOptions[0];
+                    const valOpt = validatorSelect.selectedOptions[0];
 
-                    if (!dateVal || !instructorName) {
-                        alert('Please provide a date and select an instructor.');
-                        return;
+                    if (!dateVal || !instOpt || !inTimeInput.value) {
+                        return alert('Please ensure Date, Instructor, and Check-in time are set.');
                     }
 
-                    records.push({
+                    const instructorName = instOpt.value;
+                    const instructorFormatted = instOpt.dataset.formatted;
+                    const instructorId = instOpt.dataset.id;
+
+                    const replacementName = replOpt && replOpt.value ? replOpt.value : '';
+                    const replacementFormatted = replacementName ? replOpt.dataset.formatted : '';
+                    const replacementId = replacementName ? replOpt.dataset.id : '';
+
+                    const inTime = inTimeInput.value;
+                    const outTime = outTimeInput.value;
+                    const classes = classesInput.value || '1';
+                    const remarks = remarksInput.value.trim();
+
+                    records.unshift({
+                        createdAt: Date.now(),
                         formattedDate: formatExcelDate(dateVal),
                         dayOfWeek: getDayOfWeek(dateVal),
-                        instructorId,
                         instructorName,
+                        instructorFormatted,
+                        instructorId,
+                        replacementName,
+                        replacementFormatted,
+                        replacementId,
                         inTime,
                         outTime,
                         hours: calculateHours(inTime, outTime),
                         classes,
-                        subject,
-                        coordinator
+                        creditedTo: replacementFormatted || instructorFormatted,
+                        validatorCode: valOpt.dataset.id,
+                        validatorName: valOpt.value,
+                        remarks
                     });
 
                     renderTable();
-                    showToast('Row added successfully!');
+                    remarksInput.value = '';
+                    resetInputTimes();
+                    showToast('Record saved at the top!');
                 });
 
-                // Excel & CSV Operations
+                // Range Actions
+                document.getElementById('copyRangeBtn').addEventListener('click', () => {
+                    const range = getSelectedRangeIndices();
+                    if (!range) return alert('No records available.');
+                    const slice = records.slice(range.startIdx, range.endIdx + 1);
+                    const tsv = slice.map(buildTsvRow).join('\n');
+                    copyToClipboard(tsv, `Copied rows #${range.displayStart} to #${range.displayEnd} for Excel!`);
+                });
+
+                document.getElementById('exportRangeBtn').addEventListener('click', () => {
+                    const range = getSelectedRangeIndices();
+                    if (!range) return alert('No records available.');
+                    const slice = records.slice(range.startIdx, range.endIdx + 1);
+                    triggerCsvDownload(slice, `Attendance_Rows_${range.displayStart}_to_${range.displayEnd}.csv`);
+                });
+
+                // Global Actions
                 document.getElementById('copyAllBtn').addEventListener('click', () => {
                     if (records.length === 0) return alert('No records to copy.');
                     const tsv = records.map(buildTsvRow).join('\n');
@@ -497,28 +842,17 @@
 
                 document.getElementById('exportBtn').addEventListener('click', () => {
                     if (records.length === 0) return alert('No records to export.');
-                    const headers = ['Date', 'Day of Week', 'Instructor ID', 'Instructor Name', 'Check-in Time', 'Check-out Time', 'Total Hours Spent', 'Number of Classes Taken', 'Subject / Grade Level Taught', 'Coordinator Name'];
-                    const rows = records.map(r => [
-                        `"${r.formattedDate}"`, `"${r.dayOfWeek}"`, `"${r.instructorId}"`, `"${r.instructorName}"`,
-                        `"${r.inTime}"`, `"${r.outTime}"`, `"${r.hours}"`, `"${r.classes}"`,
-                        `"${r.subject}"`, `"${r.coordinator}"`
-                    ].join(','));
-                    const csvContent = [headers.join(','), ...rows].join('\n');
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `Attendance_${dateInput.value}.csv`;
-                    link.click();
+                    triggerCsvDownload(records, `Attendance_Complete_${dateInput.value}.csv`);
                 });
 
                 document.getElementById('clearAllBtn').addEventListener('click', () => {
-                    if (confirm('Are you sure you want to clear the table?')) {
+                    if (confirm('Clear all entries from the table?')) {
                         records = [];
                         renderTable();
                     }
                 });
 
-                // Modal & Tab Handling
+                // Modals
                 const modal = document.getElementById('managementModal');
                 const tabStaffBtn = document.getElementById('tabStaffBtn');
                 const tabRolesBtn = document.getElementById('tabRolesBtn');
@@ -549,7 +883,6 @@
                     tabStaffContent.style.display = 'none';
                 });
 
-                // Add Role
                 document.getElementById('addRoleBtn').addEventListener('click', () => {
                     const roleInput = document.getElementById('newRoleInput');
                     const roleName = roleInput.value.trim();
@@ -557,7 +890,6 @@
                     if (masterRoles.map(r => r.toLowerCase()).includes(roleName.toLowerCase())) {
                         return alert('Role already exists.');
                     }
-
                     masterRoles.push(roleName);
                     localStorage.setItem('master_roles_list', JSON.stringify(masterRoles));
                     roleInput.value = '';
@@ -565,28 +897,25 @@
                     showToast(`Role "${roleName}" added.`);
                 });
 
-                // Add Staff
                 document.getElementById('saveStaffBtn').addEventListener('click', () => {
                     const id = document.getElementById('newStaffId').value.trim();
                     const name = document.getElementById('newStaffName').value.trim();
                     const role = document.getElementById('newStaffRole').value;
-                    const subject = document.getElementById('newStaffSubject').value.trim();
 
                     if (!id || !name) return alert('Staff ID and Name are required.');
-                    if (masterStaff.some(s => s.name.toLowerCase() === name.toLowerCase())) {
-                        return alert('A staff member with this name already exists.');
+                    if (masterStaff.some(s => s.name.toLowerCase() === name.toLowerCase() && s.role === role)) {
+                        return alert('A staff member with this name and role already exists.');
                     }
 
-                    masterStaff.push({ id, name, role, subject });
+                    masterStaff.push({ id, name, role });
                     localStorage.setItem('master_staff_list', JSON.stringify(masterStaff));
                     
                     document.getElementById('newStaffId').value = '';
                     document.getElementById('newStaffName').value = '';
-                    document.getElementById('newStaffSubject').value = '';
                     
                     renderStaffModalList();
                     populateDropdowns();
-                    showToast(`Added ${name} to directory.`);
+                    showToast(`Added ${name} (${id}) to directory.`);
                 });
             }
 
