@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coordinator Desk · Prodip</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --prodip-navy: #1E2C4F;
+            --prodip-navy-dark: #141E36;
+            --prodip-crimson: #8E1B32;
+            --prodip-olive: #7B9356;
+            --prodip-olive-hover: #667d45;
+            --prodip-gold: #E5A823;
+            --prodip-canvas: #F1F5F9; 
+            --prodip-card: #FFFFFF;
+            --prodip-text: #1C2430;
+            --prodip-muted: #64748B;
+            --prodip-border: #E2E8F0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--prodip-canvas); color: var(--prodip-text); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* ─── INTERNAL APP RIBBON ─── */
+        .ribbon-bar {
+            background: var(--prodip-navy);
+            color: white;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            box-shadow: 0 4px 15px rgba(20, 30, 54, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .ribbon-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ribbon-logo-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--prodip-crimson);
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .ribbon-title h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.3px; }
+        .ribbon-title span { font-size: 11px; opacity: 0.8; font-weight: 500; color: #cbd5e1; }
+        
+        .ribbon-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .role-badge {
+            background: var(--prodip-gold);
+            color: #0f172a;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* ─── DASHBOARD CONTAINER ─── */
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--prodip-card);
+            border: 1px solid var(--prodip-border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--prodip-border);
+            padding-bottom: 14px;
+        }
+        .card-header h2 { font-size: 18px; color: var(--prodip-navy); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+
+        /* ─── FORM & INPUTS ─── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { font-size: 11.5px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .field select, .field input {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 9px 12px;
+            font-size: 13px;
+            color: #0f172a;
+            outline: none;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .field select:focus, .field input:focus { border-color: var(--prodip-navy); box-shadow: 0 0 0 3px rgba(30, 44, 79, 0.1); }
+        
+        .input-group { display: flex; gap: 6px; }
+        .input-group input { flex: 1; }
+        
+        .btn {
+            padding: 9px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.15s;
+        }
+        .btn-now { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 11px; text-transform: uppercase; padding: 0 12px; }
+        .btn-now:hover { background: #0284c7; color: white; border-color: #0284c7; }
+        .btn-submit { background: var(--prodip-navy); color: white; width: 100%; margin-top: 16px; padding: 12px; font-size: 14px; }
+        .btn-submit:hover { background: var(--prodip-navy-dark); }
+        .btn-checkout { background: var(--prodip-olive); color: white; font-size: 11px; padding: 5px 10px; border-radius: 4px; }
+        .btn-checkout:hover { background: var(--prodip-olive-hover); }
+        
+        .btn-icon { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 5px 10px; font-size: 12px; border-radius: 4px; }
+        .btn-icon:hover { background: #e2e8f0; }
+        .btn-icon.danger { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+        .btn-icon.danger:hover { background: #fee2e2; }
+
+        /* ─── DATA TABLE (STAGING AREA) ─── */
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--prodip-border);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1200px; }
+        th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 2px solid #cbd5e1;
+            font-size: 11.5px;
+            text-transform: uppercase;
+        }
+        td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; color: #1e293b; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+        
+        /* Highlight active rows missing check-out */
+        tr.active-session td { background: #fffbeb; }
+        tr.active-session:hover td { background: #fef3c7; }
+
+        .cell-id { font-family: monospace; font-size: 12px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+        .badge-pending { background: #fef08a; color: #854d0e; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Footer Bulk Actions */
+        .staging-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            padding: 16px 24px;
+            border: 1px solid var(--prodip-border);
+            border-radius: 12px;
+        }
+        .btn-clear { background: white; color: var(--prodip-crimson); border: 1px solid #fca5a5; }
+        .btn-clear:hover { background: #fef2f2; }
+        .btn-send { background: var(--prodip-navy); color: white; font-size: 15px; padding: 12px 24px; font-weight: 800; border-radius: 30px; box-shadow: 0 4px 12px rgba(30,44,79,0.25); }
+        .btn-send:hover { background: var(--prodip-navy-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(30,44,79,0.3); }
+
+        /* Edit Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .modal-header { font-size: 18px; font-weight: 700; color: var(--prodip-navy); margin-bottom: 16px; border-bottom: 1px solid var(--prodip-border); padding-bottom: 12px; }
+        .modal .field { margin-bottom: 12px; }
+
+        #toast { position: fixed; bottom: 20px; right: 20px; background: var(--prodip-navy); color: white; padding: 12px 20px; border-radius: 8px; font-size: 13.5px; display: none; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <header class="ribbon-bar">
+        <div class="ribbon-brand">
+            <div class="ribbon-logo-badge"><i class="fas fa-fire"></i></div>
+            <div class="ribbon-title">
+                <h1>Coordinator Desk</h1>
+                <span>Prodip Session Management</span>
+            </div>
+        </div>
+        <div class="ribbon-user">
+            <span class="role-badge"><i class="fas fa-clipboard-check"></i> Coordinator</span>
+            <div style="font-size: 13px; font-weight: 600;">Md. Mubtasim Fuad</div>
+            <button class="btn-logout" onclick="alert('Will return to index.html in production')"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- ─── 1. SESSION INTAKE FORM ─── -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-plus-circle"></i> Log Session to Staging Area</h2>
+                <div style="font-size:12px; color:var(--prodip-muted);">Entries are saved locally first. Review and check them out before sending for approval.</div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label>Date *</label>
+                    <input type="date" id="entryDate" />
+                </div>
+                <div class="field">
+                    <label>Activity Type *</label>
+                    <select id="activityType">
+                        <option value="Regular Class">Regular Class</option>
+                        <option value="Medical Camp">Medical Camp</option>
+                        <option value="Relief Drive">Relief Drive</option>
+                        <option value="Workshop">Workshop</option>
+                    </select>
+                </div>
+                
+                <div class="field" style="grid-column: span 2;">
+                    <label>Assigned Instructor *</label>
+                    <select id="instructorSelect"></select>
+                </div>
+                
+                <div class="field" style="grid-column: span 2;">
+                    <label>Replacement (Optional)</label>
+                    <select id="replacementSelect"></select>
+                    <span style="font-size:10px; color:var(--prodip-muted); margin-top:2px;">Select if original instructor is absent.</span>
+                </div>
+
+                <div class="field" style="grid-column: span 2;">
+                    <label>Check-in Time *</label>
+                    <div class="input-group">
+                        <input type="time" id="inTime" />
+                        <button class="btn btn-now" id="nowBtn"><i class="fas fa-clock"></i> Now</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Check-out (Optional)</label>
+                    <input type="time" id="outTime" />
+                </div>
+
+                <div class="field">
+                    <label>Classes/Credit Weight</label>
+                    <input type="number" id="classesTaken" value="1" min="1" />
+                </div>
+
+                <div class="field" style="grid-column: span 2;">
+                    <label>Verified By *</label>
+                    <select id="validatorSelect"></select>
+                </div>
+
+                <div class="field" style="grid-column: span 4;">
+                    <label>Remarks / Topics Covered</label>
+                    <input type="text" id="remarksInput" placeholder="E.g., Chapter 4 Math, Group reading..." />
+                </div>
+            </div>
+            
+            <button class="btn btn-submit" id="addEntryBtn">
+                <i class="fas fa-arrow-down"></i> Add Entry to Staging Board
+            </button>
+        </div>
+
+        <!-- ─── 2. STAGING AREA (LOCAL DRAFTS) ─── -->
+        <div class="card" style="padding-bottom: 0;">
+            <div class="card-header">
+                <h2><i class="fas fa-clipboard-list"></i> Local Staging Board</h2>
+                <div style="font-size: 12px; color: var(--prodip-muted);">Review your drafts here. Click "Send" at the bottom when you are ready to submit them to the Senior Coordinators.</div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Activity</th>
+                            <th>Instructor & ID</th>
+                            <th>Replacement</th>
+                            <th>In Time</th>
+                            <th>Out Time</th>
+                            <th>Hours</th>
+                            <th>Remarks</th>
+                            <th style="min-width: 170px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Bulk Actions -->
+            <div class="staging-footer">
+                <button class="btn btn-clear" id="clearDataBtn"><i class="fas fa-trash-alt"></i> Clear Unsent Data</button>
+                <button class="btn btn-send" id="sendDbBtn"><i class="fas fa-paper-plane"></i> Send to Senior Coordinator (<span id="draftCount">0</span>)</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ─── EDIT MODAL ─── -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header"><i class="fas fa-edit"></i> Edit Local Entry</div>
+            <input type="hidden" id="editIndex" />
+            
+            <div class="field">
+                <label>Replacement (Optional)</label>
+                <select id="editReplacementSelect"></select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="field">
+                    <label>Check-in Time</label>
+                    <input type="time" id="editInTime" />
+                </div>
+                <div class="field">
+                    <label>Check-out Time</label>
+                    <input type="time" id="editOutTime" />
+                </div>
+            </div>
+            <div class="field">
+                <label>Remarks</label>
+                <input type="text" id="editRemarks" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn" style="background:#f1f5f9; border:1px solid #cbd5e1;" onclick="closeEditModal()">Cancel</button>
+                <button class="btn" style="background:var(--prodip-navy); color:white;" onclick="saveEditModal()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        (function() {
+            // Simulated Active Coordinator
+            const activeCoordinator = {
+                name: 'Md. Mubtasim Fuad',
+                studentId: '2501080'
+            };
+
+            // Shared Volunteer Data
+            const masterStaff = [
+                { studentId: '2411025', name: 'Ayesha Rahman' },
+                { studentId: '2402176', name: 'Mahabuba Maharin' },
+                { studentId: '2501080', name: 'Md. Mubtasim Fuad' },
+                { studentId: '2504111', name: 'Al Sadaf Bin Nazim' },
+                { studentId: '2211021', name: 'Sheikh Shihab Shafiq' },
+                { studentId: '2404132', name: 'Farhan Kabir' }
+            ];
+
+            let draftRecords = [];
+
+            // DOM Elements
+            const instructorSelect = document.getElementById('instructorSelect');
+            const replacementSelect = document.getElementById('replacementSelect');
+            const validatorSelect = document.getElementById('validatorSelect');
+            const dateInput = document.getElementById('entryDate');
+            const activityInput = document.getElementById('activityType');
+            const inTimeInput = document.getElementById('inTime');
+            const outTimeInput = document.getElementById('outTime');
+            const classesInput = document.getElementById('classesTaken');
+            const remarksInput = document.getElementById('remarksInput');
+            const tableBody = document.getElementById('tableBody');
+            const toast = document.getElementById('toast');
+            const draftCount = document.getElementById('draftCount');
+            
+            const editModal = document.getElementById('editModal');
+
+            // Utilities
+            function getLocalTodayDate() {
+                const now = new Date();
+                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            }
+
+            function getLocalCurrentTime() {
+                const now = new Date();
+                return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            }
+
+            function formatDisplayDate(dateStr) {
+                if (!dateStr) return '';
+                const [year, month, day] = dateStr.split('-');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${String(day).padStart(2, '0')} ${months[parseInt(month, 10) - 1]} ${year}`;
+            }
+
+            function calculateHours(inTime, outTime) {
+                if (!inTime || !outTime) return '';
+                const [inH, inM] = inTime.split(':').map(Number);
+                const [outH, outM] = outTime.split(':').map(Number);
+                let diffMin = (outH * 60 + outM) - (inH * 60 + inM);
+                if (diffMin < 0) diffMin += 24 * 60;
+                return (diffMin / 60).toFixed(1).replace(/\.0$/, '');
+            }
+
+            function showToast(msg) {
+                toast.textContent = msg;
+                toast.style.display = 'block';
+                setTimeout(() => toast.style.display = 'none', 2500);
+            }
+
+            // Initialization
+            function populateDropdowns() {
+                instructorSelect.innerHTML = '<option value="">-- Select Instructor --</option>';
+                replacementSelect.innerHTML = '<option value="">-- No Replacement --</option>';
+                document.getElementById('editReplacementSelect').innerHTML = '<option value="">-- No Replacement --</option>';
+                validatorSelect.innerHTML = '';
+
+                masterStaff.forEach(staff => {
+                    const label = `${staff.name} (${staff.studentId})`;
+                    
+                    const opt1 = new Option(label, staff.studentId);
+                    opt1.dataset.name = staff.name;
+                    instructorSelect.add(opt1);
+
+                    const opt2 = new Option(label, staff.studentId);
+                    opt2.dataset.name = staff.name;
+                    replacementSelect.add(opt2);
+                    document.getElementById('editReplacementSelect').add(opt2.cloneNode(true));
+
+                    const opt3 = new Option(label, staff.studentId);
+                    opt3.dataset.name = staff.name;
+                    validatorSelect.add(opt3);
+                });
+
+                validatorSelect.value = activeCoordinator.studentId;
+            }
+
+            function renderTable() {
+                draftRecords.sort((a, b) => b.createdAt - a.createdAt);
+                localStorage.setItem('prodip_draft_records', JSON.stringify(draftRecords));
+                
+                draftCount.textContent = draftRecords.length;
+
+                if (draftRecords.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#94a3b8; padding: 30px;">No drafts in staging area. Add an entry above.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = draftRecords.map((r, i) => {
+                    const isActive = !r.outTime;
+                    const rowClass = isActive ? 'active-session' : '';
+                    
+                    const outDisplay = isActive ? '—' : `<b>${r.outTime}</b>`;
+                    const hoursDisplay = isActive ? `<span class="badge-pending"><i class="fas fa-spinner fa-spin"></i> Ongoing</span>` : `<b>${r.hours} hr</b>`;
+                    
+                    const checkoutBtn = isActive ? `<button class="btn btn-checkout" onclick="quickCheckOut(${i})" title="Check Out"><i class="fas fa-sign-out-alt"></i></button>` : '';
+                    const editBtn = `<button class="btn btn-icon" onclick="openEditModal(${i})" title="Edit"><i class="fas fa-edit"></i></button>`;
+                    const delBtn = `<button class="btn btn-icon danger" onclick="deleteEntry(${i})" title="Delete"><i class="fas fa-trash"></i></button>`;
+
+                    const replDisplay = r.replacementId ? `${r.replacementName} <br><span class="cell-id">${r.replacementId}</span>` : '<span style="color:#cbd5e1;">—</span>';
+
+                    return `
+                        <tr class="${rowClass}">
+                            <td style="font-weight:600; white-space:nowrap;">${formatDisplayDate(r.date)}</td>
+                            <td>${r.activity}</td>
+                            <td>${r.instructorName} <br><span class="cell-id">${r.instructorId}</span></td>
+                            <td>${replDisplay}</td>
+                            <td style="color:var(--prodip-navy); font-weight:600;">${r.inTime}</td>
+                            <td>${outDisplay}</td>
+                            <td>${hoursDisplay}</td>
+                            <td style="font-size:12px; color:#475569; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.remarks || '—'}</td>
+                            <td>
+                                <div style="display:flex; gap:6px;">
+                                    ${checkoutBtn}
+                                    ${editBtn}
+                                    ${delBtn}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Record Actions
+            document.getElementById('nowBtn').addEventListener('click', () => {
+                inTimeInput.value = getLocalCurrentTime();
+            });
+
+            document.getElementById('addEntryBtn').addEventListener('click', () => {
+                if (!dateInput.value || !instructorSelect.value || !inTimeInput.value) {
+                    return alert('Error: Date, Instructor, and Check-in time are required.');
+                }
+
+                const instOpt = instructorSelect.selectedOptions[0];
+                const replOpt = replacementSelect.selectedOptions[0];
+                const valOpt = validatorSelect.selectedOptions[0];
+                const hasReplacement = replacementSelect.value !== "";
+
+                draftRecords.unshift({
+                    createdAt: Date.now(),
+                    date: dateInput.value,
+                    activity: activityInput.value,
+                    instructorId: instOpt.value,
+                    instructorName: instOpt.dataset.name,
+                    replacementId: hasReplacement ? replOpt.value : '',
+                    replacementName: hasReplacement ? replOpt.dataset.name : '',
+                    inTime: inTimeInput.value,
+                    outTime: outTimeInput.value,
+                    hours: calculateHours(inTimeInput.value, outTimeInput.value),
+                    classes: classesInput.value || '1',
+                    validatorCode: valOpt.value,
+                    validatorName: valOpt.dataset.name,
+                    remarks: remarksInput.value.trim()
+                });
+
+                renderTable();
+                
+                // Clear some inputs for next entry
+                remarksInput.value = '';
+                outTimeInput.value = '';
+                instructorSelect.value = '';
+                replacementSelect.value = '';
+                showToast('Entry added to local staging board.');
+            });
+
+            // Table Row Actions
+            window.quickCheckOut = function(index) {
+                const cur = getLocalCurrentTime();
+                draftRecords[index].outTime = cur;
+                draftRecords[index].hours = calculateHours(draftRecords[index].inTime, cur);
+                renderTable();
+                showToast(`Checked out at ${cur}`);
+            };
+
+            window.deleteEntry = function(index) {
+                if(confirm("Remove this entry from the staging board?")) {
+                    draftRecords.splice(index, 1);
+                    renderTable();
+                }
+            };
+
+            // Edit Modal Logic
+            window.openEditModal = function(index) {
+                const rec = draftRecords[index];
+                document.getElementById('editIndex').value = index;
+                document.getElementById('editReplacementSelect').value = rec.replacementId || '';
+                document.getElementById('editInTime').value = rec.inTime;
+                document.getElementById('editOutTime').value = rec.outTime || '';
+                document.getElementById('editRemarks').value = rec.remarks || '';
+                editModal.classList.add('active');
+            };
+
+            window.closeEditModal = function() {
+                editModal.classList.remove('active');
+            };
+
+            window.saveEditModal = function() {
+                const idx = document.getElementById('editIndex').value;
+                const rec = draftRecords[idx];
+                
+                const replOpt = document.getElementById('editReplacementSelect').selectedOptions[0];
+                const hasReplacement = replOpt.value !== "";
+
+                rec.replacementId = hasReplacement ? replOpt.value : '';
+                rec.replacementName = hasReplacement ? replOpt.dataset.name : '';
+                rec.inTime = document.getElementById('editInTime').value;
+                rec.outTime = document.getElementById('editOutTime').value;
+                rec.hours = calculateHours(rec.inTime, rec.outTime);
+                rec.remarks = document.getElementById('editRemarks').value;
+
+                renderTable();
+                closeEditModal();
+                showToast('Draft updated successfully.');
+            };
+
+            // Footer Bulk Actions
+            document.getElementById('clearDataBtn').addEventListener('click', () => {
+                if(draftRecords.length === 0) return;
+                if(confirm("Are you sure you want to clear all unsent drafts? This cannot be undone.")) {
+                    draftRecords = [];
+                    renderTable();
+                }
+            });
+
+            document.getElementById('sendDbBtn').addEventListener('click', () => {
+                if (draftRecords.length === 0) {
+                    return alert("No entries to send.");
+                }
+                
+                // Ensure all entries are checked out before sending
+                const incomplete = draftRecords.filter(r => !r.outTime);
+                if (incomplete.length > 0) {
+                    return alert(`Please Check Out all ongoing sessions before sending to the Senior Coordinator. (${incomplete.length} remaining)`);
+                }
+
+                if (confirm(`Send ${draftRecords.length} entries to the Senior Coordinator for approval?`)) {
+                    /* ── SUPABASE BULK INSERT HOOK (WITH status: 'Pending Approval') ── */
+                    
+                    draftRecords = [];
+                    renderTable();
+                    alert("Success! The entries have been sent to the Prodip Management Panel (Inbox) for approval.");
+                }
+            });
+
+            // On Load
+            function init() {
+                dateInput.value = getLocalTodayDate();
+                inTimeInput.value = getLocalCurrentTime();
+                populateDropdowns();
+
+                const stored = localStorage.getItem('prodip_draft_records');
+                if (stored) {
+                    try { draftRecords = JSON.parse(stored); } catch (e) {}
+                }
+
+                renderTable();
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
