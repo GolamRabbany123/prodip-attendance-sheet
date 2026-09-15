@@ -535,7 +535,7 @@
             }
         };
 
-        // Auto-restore session
+        // Auto-restore active session if already authenticated
         (async function checkExistingCoordSession() {
             const savedId = localStorage.getItem('prodip_coord_auth_id');
             if (savedId) {
@@ -551,16 +551,19 @@
         async function initDeskData() {
             const [vRes, aRes] = await Promise.all([
                 sb.from('volunteers').select('*').order('full_name'),
-                sb.from('activities').select('*').order('name')
+                sb.from('activities').select('*').order('title')
             ]);
 
             cachedVolunteers = vRes.data || [];
-            cachedActivities = aRes.data || [];
+            cachedActivities = (aRes.data && aRes.data.length > 0) ? aRes.data : [
+                { title: 'Teaching and Mentorship', category: 'Academic' },
+                { title: 'Medical Camp Volunteer', category: 'Medical' }
+            ];
 
-            // 1. Populate Activities (Class pre-selected by default)
+            // 1. Populate Activities (Always selects first / Teaching and Mentorship)
             const actSelect = document.getElementById('fieldActivity');
             actSelect.innerHTML = cachedActivities.map((a, idx) => 
-                `<option value="${a.name}" ${a.name.toLowerCase().includes('class') || idx === 0 ? 'selected' : ''}>${a.name}</option>`
+                `<option value="${a.title}" ${idx === 0 ? 'selected' : ''}>${a.title}</option>`
             ).join('');
 
             // 2. Populate Volunteers Dropdowns
@@ -571,7 +574,7 @@
             document.getElementById('fieldInstructor').innerHTML = '<option value="">Select Instructor...</option>' + vOptions;
             document.getElementById('fieldReplacement').innerHTML = '<option value="">None (Regular Instructor)</option>' + vOptions;
 
-            // 3. Set Date & Current Times
+            // 3. Set Date & Default Start Time
             const today = new Date();
             document.getElementById('fieldDate').value = today.toISOString().split('T')[0];
             onDateChange();
@@ -616,7 +619,7 @@
 
         /* ─── 3. STAGING AREA WORKFLOW ─── */
         window.addWorkToStaging = function() {
-            const actName = document.getElementById('fieldActivity').value;
+            const actTitle = document.getElementById('fieldActivity').value;
             const instId = document.getElementById('fieldInstructor').value;
             const repId = document.getElementById('fieldReplacement').value;
             const sDate = document.getElementById('fieldDate').value;
@@ -625,7 +628,7 @@
             const outTime = document.getElementById('fieldOutTime').value;
             const topic = document.getElementById('fieldTopic').value.trim();
 
-            if (!actName) return alert('Select an activity.');
+            if (!actTitle) return alert('Select an activity.');
             if (!instId) return alert('Select the instructor.');
             if (!sDate) return alert('Select session date.');
             if (!inTime) return alert('Provide In-Time.');
@@ -636,7 +639,7 @@
 
             const record = {
                 id: 'stage_' + Date.now(),
-                activity_name: actName,
+                activity_title: actTitle,
                 instructor_id: instId,
                 instructor_name: instructor ? instructor.full_name : 'Unknown',
                 replacement_id: repId || null,
@@ -647,16 +650,17 @@
                 day_of_week: dayOfWeek,
                 in_time: inTime,
                 out_time: outTime || null,
-                topic_covered: topic || 'Regular syllabus covered',
+                topic_covered: topic || 'Teaching and mentoring syllabus covered',
                 is_designated_day: isDesignated,
-                verified_by: `${activeCoordinator.full_name} (${activeCoordinator.student_id})`
+                verified_by: `${activeCoordinator.full_name} (${activeCoordinator.student_id})`,
+                validator_id: activeCoordinator.student_id
             };
 
             stagingQueue.unshift(record);
             renderStagingTable();
             showToast('Volunteer work logged to staging!');
 
-            // Clear inputs
+            // Clear inputs for next log
             document.getElementById('fieldTopic').value = '';
             document.getElementById('fieldOutTime').value = '';
         };
@@ -680,8 +684,8 @@
                 return `
                     <tr>
                         <td><b>${item.session_date}</b><br><small style="color:#64748b;">${item.day_of_week}</small></td>
-                        <td>${item.activity_name}</td>
-                        <td>${creditLabel}<br><small style="color:#64748b;">ID: ${item.credited_to_id}</small></td>
+                        <td><b>${item.activity_title}</b></td>
+                        <td>${creditLabel}<br><small style="color:#64748b;">Credit: ${item.credited_to_id}</small></td>
                         <td>In: <b>${item.in_time}</b><br>${item.out_time ? 'Out: <b>' + item.out_time + '</b>' : '<span style="color:#b45309; font-size:11px;">Ongoing</span>'}</td>
                         <td>${item.topic_covered}</td>
                         <td><small style="color:var(--prodip-navy); font-weight:600;">${item.verified_by}</small></td>
@@ -716,12 +720,10 @@
             const item = stagingQueue[index];
             document.getElementById('editItemIndex').value = index;
 
-            // Populate activity options
             document.getElementById('editActivity').innerHTML = cachedActivities.map(a => 
-                `<option value="${a.name}" ${a.name === item.activity_name ? 'selected' : ''}>${a.name}</option>`
+                `<option value="${a.title}" ${a.title === item.activity_title ? 'selected' : ''}>${a.title}</option>`
             ).join('');
 
-            // Populate volunteer options
             const vOptions = cachedVolunteers.map(v => 
                 `<option value="${v.student_id}">${v.full_name} (${v.student_id})</option>`
             ).join('');
@@ -747,7 +749,7 @@
             const idx = document.getElementById('editItemIndex').value;
             const item = stagingQueue[idx];
 
-            const actName = document.getElementById('editActivity').value;
+            const actTitle = document.getElementById('editActivity').value;
             const instId = document.getElementById('editInstructor').value;
             const repId = document.getElementById('editReplacement').value;
             const inTime = document.getElementById('editInTime').value;
@@ -757,7 +759,7 @@
             const instructor = cachedVolunteers.find(v => v.student_id === instId);
             const replacement = repId ? cachedVolunteers.find(v => v.student_id === repId) : null;
 
-            item.activity_name = actName;
+            item.activity_title = actTitle;
             item.instructor_id = instId;
             item.instructor_name = instructor ? instructor.full_name : 'Unknown';
             item.replacement_id = repId || null;
@@ -779,26 +781,29 @@
                 return alert('Staging area is empty. Log volunteer work first.');
             }
 
-            if (!confirm(`Submit ${stagingQueue.length} session(s) to the Senior Coordinator for Master approval?`)) {
+            if (!confirm(`Submit ${stagingQueue.length} record(s) to the Senior Coordinator for Master approval?`)) {
                 return;
             }
 
-            // Map each row to Supabase attendance_logs schema
+            // Map all columns to ensure compatibility with Supabase schema
             const payload = stagingQueue.map(item => ({
                 session_date: item.session_date,
                 day_of_week: item.day_of_week,
-                activity_name: item.activity_name,
+                activity_title: item.activity_title,
+                instructor_student_id: item.instructor_id,
                 instructor_id: item.instructor_id,
                 instructor_name: item.instructor_name,
-                replacement_id: item.replacement_id,
-                replacement_name: item.replacement_name,
+                replacement_student_id: item.replacement_id || null,
+                replacement_id: item.replacement_id || null,
+                replacement_name: item.replacement_name || null,
                 credited_to_id: item.credited_to_id,
-                credited_to_name: item.credited_to_name,
+                validator_id: activeCoordinator.student_id,
+                verified_by: `${activeCoordinator.full_name} (${activeCoordinator.student_id})`,
                 in_time: item.in_time,
                 out_time: item.out_time || item.in_time,
                 topic_covered: item.topic_covered,
+                remarks: item.topic_covered,
                 is_designated_day: item.is_designated_day,
-                verified_by: item.verified_by,
                 status: 'Pending'
             }));
 
