@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Management Panel · Prodip</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --prodip-navy: #1E2C4F;
+            --prodip-navy-dark: #141E36;
+            --prodip-crimson: #8E1B32;
+            --prodip-olive: #7B9356;
+            --prodip-gold: #E5A823;
+            --prodip-canvas: #F1F5F9; 
+            --prodip-card: #FFFFFF;
+            --prodip-text: #1C2430;
+            --prodip-muted: #64748B;
+            --prodip-border: #E2E8F0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--prodip-canvas); color: var(--prodip-text); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* ─── ADMIN RIBBON ─── */
+        .ribbon-bar {
+            background: var(--prodip-navy-dark);
+            color: white;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            box-shadow: 0 4px 15px rgba(20, 30, 54, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .ribbon-brand { display: flex; align-items: center; gap: 12px; }
+        .ribbon-logo-badge {
+            width: 38px; height: 38px; border-radius: 50%; background: white;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--prodip-crimson); font-size: 18px;
+        }
+        .ribbon-title h1 { font-size: 18px; font-weight: 700; }
+        .ribbon-title span { font-size: 11px; opacity: 0.8; font-weight: 500; color: #cbd5e1; }
+        
+        .ribbon-user { display: flex; align-items: center; gap: 16px; }
+        .role-badge {
+            background: var(--prodip-crimson); color: white; font-size: 11px;
+            font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase;
+        }
+
+        /* ─── ADMIN TABS ─── */
+        .admin-nav {
+            background: white;
+            border-bottom: 1px solid var(--prodip-border);
+            padding: 0 32px;
+            display: flex;
+            gap: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        .admin-tab {
+            padding: 16px 4px; border: none; background: transparent; font-size: 14px;
+            font-weight: 700; color: var(--prodip-muted); cursor: pointer;
+            border-bottom: 3px solid transparent; transition: 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .admin-tab:hover { color: var(--prodip-navy); }
+        .admin-tab.active { color: var(--prodip-navy); border-bottom-color: var(--prodip-navy); }
+        .inbox-badge {
+            background: var(--prodip-crimson); color: white; padding: 2px 8px;
+            border-radius: 12px; font-size: 11px; font-weight: 800;
+        }
+
+        /* ─── APP SHELL ─── */
+        .container { max-width: 1550px; width: 100%; margin: 24px auto; padding: 0 20px; flex: 1; }
+        .view-section { display: none; animation: fadeIn 0.2s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: var(--prodip-card); border: 1px solid var(--prodip-border);
+            border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 1px solid var(--prodip-border); padding-bottom: 14px;
+        }
+        .card-header h2 { font-size: 18px; color: var(--prodip-navy); display: flex; align-items: center; gap: 8px; font-weight: 700; }
+
+        /* ─── SPLIT LAYOUT (FOR MANAGEMENT) ─── */
+        .split-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
+        
+        /* ─── FORMS & INPUTS ─── */
+        .form-panel { background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .field label { font-size: 11.5px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .field select, .field input {
+            background: white; border: 1px solid #cbd5e1; border-radius: 6px;
+            padding: 9px 12px; font-size: 13px; outline: none; width: 100%;
+        }
+        .field select:focus, .field input:focus { border-color: var(--prodip-navy); }
+        
+        .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #334155; cursor: pointer; }
+        
+        .btn {
+            padding: 9px 16px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.15s;
+        }
+        .btn-navy { background: var(--prodip-navy); color: white; }
+        .btn-navy:hover { background: var(--prodip-navy-dark); }
+        .btn-olive { background: var(--prodip-olive); color: white; }
+        .btn-olive:hover { background: var(--prodip-olive-hover); }
+        .btn-crimson { background: var(--prodip-crimson); color: white; }
+        .btn-crimson:hover { background: var(--prodip-crimson-hover); }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #334155; }
+        .btn-outline:hover { background: #f1f5f9; }
+        .btn-sm { padding: 5px 10px; font-size: 11.5px; }
+
+        /* ─── DATA TABLES ─── */
+        .table-wrap { overflow-x: auto; border: 1px solid var(--prodip-border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1100px; }
+        th { background: #f1f5f9; color: #334155; font-weight: 700; padding: 12px 14px; text-align: left; border-bottom: 2px solid #cbd5e1; font-size: 11.5px; text-transform: uppercase; }
+        td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; color: #1e293b; }
+        tr:hover td { background: #f8fafc; }
+        
+        .cell-id { font-family: monospace; font-size: 12px; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+        
+        .list-group { display: flex; flex-direction: column; gap: 8px; }
+        .list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: white; border: 1px solid var(--prodip-border);
+            border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .list-item:hover { border-color: #cbd5e1; }
+
+        .range-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e2e8f0; }
+        .range-controls { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+        .range-controls input { width: 65px; padding: 5px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 12px; padding: 24px; max-width: 650px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+        .modal-header { font-size: 18px; font-weight: 700; color: var(--prodip-navy); margin-bottom: 16px; border-bottom: 1px solid var(--prodip-border); padding-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        #toast { position: fixed; bottom: 20px; right: 20px; background: var(--prodip-navy); color: white; padding: 12px 20px; border-radius: 8px; font-size: 13.5px; display: none; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <!-- ─── RIBBON ─── -->
+    <header class="ribbon-bar">
+        <div class="ribbon-brand">
+            <div class="ribbon-logo-badge"><i class="fas fa-fire"></i></div>
+            <div class="ribbon-title">
+                <h1>Management Panel</h1>
+                <span>Prodip Senior Command</span>
+            </div>
+        </div>
+        <div class="ribbon-user">
+            <span class="role-badge"><i class="fas fa-shield-alt"></i> Admin</span>
+            <div style="font-size: 13px; font-weight: 600;">Farhan Kabir</div>
+        </div>
+    </header>
+
+    <!-- ─── NAVIGATION TABS ─── -->
+    <nav class="admin-nav">
+        <button class="admin-tab active" id="tabInbox" onclick="switchView('inboxView')">
+            <i class="fas fa-inbox"></i> Approval Inbox <span class="inbox-badge" id="inboxCount">0</span>
+        </button>
+        <button class="admin-tab" id="tabRegister" onclick="switchView('registerView')">
+            <i class="fas fa-database"></i> Master Register
+        </button>
+        <button class="admin-tab" id="tabVolunteer" onclick="switchView('volunteerView')">
+            <i class="fas fa-users-cog"></i> Volunteers & Roles
+        </button>
+        <button class="admin-tab" id="tabActivities" onclick="switchView('activitiesView')">
+            <i class="fas fa-tasks"></i> Activities Manage
+        </button>
+    </nav>
+
+    <div class="container">
+
+        <!-- ─── 1. APPROVAL INBOX ─── -->
+        <section id="inboxView" class="view-section active">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-envelope-open-text"></i> Pending Sessions Queue</h2>
+                    <div style="font-size:12px; color:var(--prodip-muted);">Review and approve entries sent by Coordinators to lock them into the Master Register.</div>
+                </div>
+                
+                <div style="margin-bottom: 14px; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-olive" onclick="approveAll()"><i class="fas fa-check-double"></i> Approve All Pending</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Activity</th>
+                                <th>Instructor</th>
+                                <th>Replacement</th>
+                                <th>In Time</th>
+                                <th>Out Time</th>
+                                <th>Hrs/Credit</th>
+                                <th>Remarks</th>
+                                <th style="width: 130px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inboxBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── 2. MASTER REGISTER (Excel A-N) ─── -->
+        <section id="registerView" class="view-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-database"></i> Official Master Register</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-navy btn-sm" onclick="openMasterModal()"><i class="fas fa-plus"></i> Add Entry</button>
+                        <button class="btn btn-crimson btn-sm" onclick="clearMasterRegister()"><i class="fas fa-trash-alt"></i> Reset DB</button>
+                    </div>
+                </div>
+
+                <div class="range-bar">
+                    <div class="range-controls">
+                        <i class="fas fa-filter" style="color:var(--prodip-navy);"></i>
+                        <label>From Row #:</label> <input type="number" id="rangeStart" min="1" value="1" />
+                        <label>To Row #:</label> <input type="number" id="rangeEnd" min="1" value="1" />
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-navy btn-sm" id="copyRangeBtn"><i class="fas fa-copy"></i> Copy Range</button>
+                        <button class="btn btn-navy btn-sm" id="copyAllBtn"><i class="fas fa-copy"></i> Copy All</button>
+                        <button class="btn btn-olive btn-sm" id="exportBtn"><i class="fas fa-download"></i> Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table style="min-width: 1700px;">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date (A)</th>
+                                <th>Day (B)</th>
+                                <th>Instructor (C)</th>
+                                <th>Student ID (D)</th>
+                                <th>Replacement (E)</th>
+                                <th>Replacement ID (F)</th>
+                                <th>Check-in (G)</th>
+                                <th>Check-out (H)</th>
+                                <th>Hours (I)</th>
+                                <th>Classes (J)</th>
+                                <th>Credited To (K)</th>
+                                <th>Val. Code (L)</th>
+                                <th>Val. Name (M)</th>
+                                <th>Remarks (N)</th>
+                                <th style="min-width: 140px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="masterBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── 3. VOLUNTEERS & ROLES MANAGEMENT ─── -->
+        <section id="volunteerView" class="view-section">
+            <div class="split-layout">
+                
+                <!-- Volunteer Form -->
+                <div class="form-panel">
+                    <h3 style="font-size: 16px; color: var(--prodip-navy); margin-bottom: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;" id="volunteerFormTitle">
+                        <i class="fas fa-user-plus"></i> Add New Volunteer
+                    </h3>
+                    <input type="hidden" id="editVolunteerIndex" value="-1" />
+                    
+                    <div class="field">
+                        <label>Student ID (Primary Key) *</label>
+                        <input type="text" id="volunteerId" placeholder="e.g. 2411025" />
+                    </div>
+                    <div class="field">
+                        <label>Full Name *</label>
+                        <input type="text" id="volunteerName" placeholder="e.g. Ayesha Rahman" />
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <div class="field" style="flex:1;">
+                            <label>Role</label>
+                            <select id="volunteerRole"></select>
+                        </div>
+                        <div class="field" style="width: 100px;">
+                            <label>Target</label>
+                            <input type="number" id="volunteerTarget" value="20" title="Classes needed for certificate" />
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <div class="field" style="flex:1;">
+                            <label>Department</label>
+                            <input type="text" id="volunteerDept" placeholder="BME" />
+                        </div>
+                        <div class="field" style="flex:1;">
+                            <label>Batch</label>
+                            <input type="text" id="volunteerBatch" placeholder="2024" />
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label>Designated Teaching Days</label>
+                        <div class="checkbox-grid" id="volunteerDaysGrid">
+                            <label class="checkbox-label"><input type="checkbox" value="Sunday"> Sun</label>
+                            <label class="checkbox-label"><input type="checkbox" value="Monday"> Mon</label>
+                            <label class="checkbox-label"><input type="checkbox" value="Tuesday"> Tue</label>
+                            <label class="checkbox-label"><input type="checkbox" value="Wednesday"> Wed</label>
+                            <label class="checkbox-label"><input type="checkbox" value="Thursday"> Thu</label>
+                            <label class="checkbox-label"><input type="checkbox" value="Friday"> Fri</label>
+                            <label class="checkbox-label"><input type="checkbox" value="Saturday"> Sat</label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-outline" style="flex:1;" onclick="resetVolunteerForm()">Clear</button>
+                        <button class="btn btn-navy" style="flex:2;" id="saveVolunteerBtn" onclick="saveVolunteer()">Save Volunteer</button>
+                    </div>
+                </div>
+
+                <!-- Volunteer & Roles Directories -->
+                <div style="display:flex; flex-direction:column; gap:24px;">
+                    <div class="card" style="margin:0;">
+                        <div class="card-header">
+                            <h2><i class="fas fa-address-book"></i> Volunteer Directory</h2>
+                        </div>
+                        <div class="list-group" id="volunteerListRender" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
+                    </div>
+
+                    <div class="card" style="margin:0;">
+                        <div class="card-header" style="margin-bottom: 12px; padding-bottom:8px;">
+                            <h2><i class="fas fa-shield-alt"></i> Organizational Roles</h2>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-bottom: 16px;">
+                            <input type="text" id="newRoleName" placeholder="Role Name" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;" />
+                            <input type="number" id="newRoleLevel" placeholder="Lvl (1-6)" style="width:80px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;" min="1" max="6"/>
+                            <button class="btn btn-crimson" onclick="addRole()">Add Role</button>
+                        </div>
+                        <div class="list-group" id="rolesListRender" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ─── 4. ACTIVITIES MANAGEMENT ─── -->
+        <section id="activitiesView" class="view-section">
+            <div class="split-layout">
+                
+                <div class="form-panel">
+                    <h3 style="font-size: 16px; color: var(--prodip-navy); margin-bottom: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;">
+                        <i class="fas fa-tasks"></i> Create/Edit Activity Type
+                    </h3>
+                    <input type="hidden" id="editActivityIndex" value="-1" />
+                    
+                    <div class="field">
+                        <label>Activity Title *</label>
+                        <input type="text" id="actTitle" placeholder="e.g. Flood Relief Drive" />
+                    </div>
+                    <div class="field">
+                        <label>Category</label>
+                        <select id="actCategory">
+                            <option value="Teaching">Teaching & Mentorship</option>
+                            <option value="Voluntary">Voluntary Service</option>
+                            <option value="Event">Event Management</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Credit Multiplier / Value</label>
+                        <input type="number" id="actMultiplier" value="1" step="0.5" />
+                        <span style="font-size:10.5px; color:var(--prodip-muted);">How many classes does this event count towards the certificate?</span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-outline" style="flex:1;" onclick="resetActivityForm()">Clear</button>
+                        <button class="btn btn-olive" style="flex:2;" id="saveActivityBtn" onclick="saveActivity()">Save Activity</button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin:0;">
+                    <div class="card-header">
+                        <h2><i class="fas fa-clipboard-list"></i> Configured Activities</h2>
+                    </div>
+                    <div class="list-group" id="activityListRender"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ─── MASTER ENTRY MODAL (ADD / EDIT) ─── -->
+    <div class="modal-overlay" id="masterModal">
+        <div class="modal">
+            <div class="modal-header" id="masterModalTitle"><i class="fas fa-edit"></i> Master Entry</div>
+            <input type="hidden" id="modalMasterIndex" value="-1" />
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="field">
+                    <label>Date</label>
+                    <input type="date" id="modalMasterDate" />
+                </div>
+                <div class="field">
+                    <label>Activity</label>
+                    <select id="modalMasterAct"></select>
+                </div>
+                <div class="field">
+                    <label>Instructor</label>
+                    <select id="modalMasterInst"></select>
+                </div>
+                <div class="field">
+                    <label>Replacement (Optional)</label>
+                    <select id="modalMasterRepl"></select>
+                </div>
+                <div class="field">
+                    <label>Check-in Time</label>
+                    <input type="time" id="modalMasterIn" />
+                </div>
+                <div class="field">
+                    <label>Check-out Time</label>
+                    <input type="time" id="modalMasterOut" />
+                </div>
+                <div class="field">
+                    <label>Classes/Credit</label>
+                    <input type="number" id="modalMasterClasses" value="1" min="0" step="0.5"/>
+                </div>
+                <div class="field">
+                    <label>Validator (Admin)</label>
+                    <select id="modalMasterVal"></select>
+                </div>
+            </div>
+            
+            <div class="field">
+                <label>Remarks</label>
+                <input type="text" id="modalMasterRemarks" placeholder="Record details..." />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-outline" onclick="closeMasterModal()">Cancel</button>
+                <button class="btn btn-navy" onclick="saveMasterModal()">Save to Master</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        (function() {
+            // ─── DATA MODELS (Simulated DB) ───
+            let pendingRecords = [];
+            let masterRecords = [];
+            
+            let masterRoles = [
+                { name: 'Volunteer', level: 1 },
+                { name: 'Mentor-Instructor', level: 2 },
+                { name: 'Coordinator', level: 3 },
+                { name: 'Senior Coordinator', level: 4 },
+                { name: 'Executive Member', level: 5 },
+                { name: 'Admin', level: 6 }
+            ];
+
+            let masterVolunteers = [
+                { studentId: '2411025', name: 'Ayesha Rahman', role: 'Mentor-Instructor', dept: 'BME', batch: '2024', email: 'u2411025@student.cuet.ac.bd', phone: '01837949184', days: ['Monday', 'Thursday'], target: 20 },
+                { studentId: '2402176', name: 'Mahabuba Maharin', role: 'Mentor-Instructor', dept: 'EEE', batch: '2024', email: 'u2402176@student.cuet.ac.bd', phone: '01922303159', days: ['Tuesday', 'Friday'], target: 20 },
+                { studentId: '2501080', name: 'Md. Mubtasim Fuad', role: 'Coordinator', dept: 'CE', batch: '2025', email: 'mubtasim1122@gmail.com', phone: '01401839986', days: ['Monday'], target: 20 },
+                { studentId: '2404132', name: 'Farhan Kabir', role: 'Admin', dept: 'CSE', batch: '2024', email: 'farhan.kabir@example.com', phone: '01872257752', days: ['Sunday'], target: 20 }
+            ];
+
+            let masterActivities = [
+                { title: 'Regular Class', category: 'Teaching', multiplier: 1 },
+                { title: 'Medical Camp', category: 'Voluntary', multiplier: 2 },
+                { title: 'Winter Clothes Distribution', category: 'Voluntary', multiplier: 1.5 },
+                { title: 'Workshop', category: 'Teaching', multiplier: 1 }
+            ];
+
+            // ─── UTILS ───
+            function showToast(msg) {
+                const t = document.getElementById('toast');
+                t.textContent = msg;
+                t.style.display = 'block';
+                setTimeout(() => t.style.display = 'none', 2500);
+            }
+
+            function formatDisplayDate(dateStr) {
+                if (!dateStr) return '';
+                const [year, month, day] = dateStr.split('-');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${String(day).padStart(2, '0')}-${months[parseInt(month, 10) - 1]}-${year}`;
+            }
+
+            function getDayOfWeek(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { weekday: 'long' });
+            }
+
+            function calculateHours(inTime, outTime) {
+                if (!inTime || !outTime) return '';
+                const [inH, inM] = inTime.split(':').map(Number);
+                const [outH, outM] = outTime.split(':').map(Number);
+                let diffMin = (outH * 60 + outM) - (inH * 60 + inM);
+                if (diffMin < 0) diffMin += 24 * 60;
+                return (diffMin / 60).toFixed(1).replace(/\.0$/, '');
+            }
+
+            // ─── TAB NAVIGATION ───
+            window.switchView = function(viewId) {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                document.getElementById(viewId).classList.add('active');
+
+                document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+                if(viewId==='inboxView') document.getElementById('tabInbox').classList.add('active');
+                if(viewId==='registerView') document.getElementById('tabRegister').classList.add('active');
+                if(viewId==='volunteerView') document.getElementById('tabVolunteer').classList.add('active');
+                if(viewId==='activitiesView') document.getElementById('tabActivities').classList.add('active');
+            };
+
+            // ─── 1. INBOX MANAGEMENT ───
+            function renderInbox() {
+                const tbody = document.getElementById('inboxBody');
+                document.getElementById('inboxCount').textContent = pendingRecords.length;
+
+                if (pendingRecords.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#94a3b8; padding:30px;">Inbox is empty. No pending records.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = pendingRecords.map((r, i) => {
+                    const repl = r.replacementId ? `${r.replacementName} <br><span class="cell-id">${r.replacementId}</span>` : '—';
+                    return `
+                        <tr>
+                            <td style="font-weight:600;">${formatDisplayDate(r.date)}</td>
+                            <td>${r.activity}</td>
+                            <td>${r.instructorName} <br><span class="cell-id">${r.instructorId}</span></td>
+                            <td>${repl}</td>
+                            <td style="color:var(--prodip-navy); font-weight:600;">${r.inTime}</td>
+                            <td><b>${r.outTime}</b></td>
+                            <td><b>${r.hours}h</b> / ${r.classes}</td>
+                            <td style="font-size:11.5px; max-width:140px;">${r.remarks || '—'}</td>
+                            <td>
+                                <button class="btn btn-olive btn-sm" onclick="approveRecord(${i})"><i class="fas fa-check"></i></button>
+                                <button class="btn btn-crimson btn-sm" onclick="rejectRecord(${i})" style="margin-left:4px;"><i class="fas fa-times"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            window.approveRecord = function(index) {
+                const rec = pendingRecords.splice(index, 1)[0];
+                rec.approvedAt = Date.now();
+                masterRecords.unshift(rec);
+                saveData();
+                renderInbox();
+                renderMaster();
+                showToast('Record approved and logged to Master Register.');
+            };
+
+            window.rejectRecord = function(index) {
+                if(confirm('Are you sure you want to reject and delete this entry?')) {
+                    pendingRecords.splice(index, 1);
+                    saveData();
+                    renderInbox();
+                    showToast('Record rejected.');
+                }
+            };
+
+            window.approveAll = function() {
+                if(pendingRecords.length === 0) return alert('Inbox is empty.');
+                if(confirm(`Approve all ${pendingRecords.length} pending records?`)) {
+                    pendingRecords.forEach(r => {
+                        r.approvedAt = Date.now();
+                        masterRecords.unshift(r);
+                    });
+                    pendingRecords = [];
+                    saveData();
+                    renderInbox();
+                    renderMaster();
+                    showToast('All records approved.');
+                }
+            };
+
+            // ─── 2. MASTER REGISTER & MODAL ACTIONS ───
+            function renderMaster() {
+                masterRecords.sort((a, b) => b.createdAt - a.createdAt); 
+                
+                if (masterRecords.length > 0) {
+                    document.getElementById('rangeEnd').max = masterRecords.length;
+                    document.getElementById('rangeEnd').value = masterRecords.length;
+                }
+
+                const tbody = document.getElementById('masterBody');
+                if (masterRecords.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:30px; color:#94a3b8;">Master Register is empty.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = masterRecords.map((r, i) => `
+                    <tr>
+                        <td style="font-weight:700; color:var(--prodip-navy);">${String(i + 1).padStart(2, '0')}</td>
+                        <td>${formatDisplayDate(r.date)}</td>
+                        <td>${r.dayOfWeek}</td>
+                        <td style="font-weight:500;">${r.instructorFormatted}</td>
+                        <td class="cell-id">${r.instructorId}</td>
+                        <td>${r.replacementFormatted || '—'}</td>
+                        <td class="cell-id">${r.replacementId || '—'}</td>
+                        <td>${r.inTime}</td>
+                        <td>${r.outTime}</td>
+                        <td style="font-weight:600;">${r.hours}</td>
+                        <td>${r.classes}</td>
+                        <td style="color:var(--prodip-olive); font-weight:600;">${r.creditedTo}</td>
+                        <td class="cell-id">${r.validatorCode}</td>
+                        <td>${r.validatorName}</td>
+                        <td style="font-size:11.5px;">${r.remarks || '—'}</td>
+                        <td style="text-align:center; white-space:nowrap;">
+                            <button class="btn btn-outline btn-sm" onclick="editMaster(${i})" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-outline btn-sm" onclick="duplicateMaster(${i})" title="Duplicate"><i class="fas fa-copy" style="color:var(--prodip-olive);"></i></button>
+                            <button class="btn btn-outline btn-sm" onclick="deleteMaster(${i})" title="Delete"><i class="fas fa-trash" style="color:#dc2626;"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            window.duplicateMaster = function(index) {
+                const original = masterRecords[index];
+                const clone = JSON.parse(JSON.stringify(original));
+                clone.createdAt = Date.now(); // Put at the top
+                masterRecords.unshift(clone);
+                saveData();
+                renderMaster();
+                showToast('Entry duplicated successfully.');
+            };
+
+            window.deleteMaster = function(index) {
+                if(confirm('WARNING (Admin Action): Delete this official record permanently?')) {
+                    masterRecords.splice(index, 1);
+                    saveData();
+                    renderMaster();
+                }
+            };
+
+            window.clearMasterRegister = function() {
+                if(confirm('CRITICAL WARNING: Are you sure you want to wipe the entire Master Database?')) {
+                    masterRecords = [];
+                    saveData();
+                    renderMaster();
+                }
+            };
+
+            // Master Entry Modal Handlers
+            window.openMasterModal = function() {
+                populateModalDropdowns();
+                document.getElementById('modalMasterIndex').value = "-1";
+                document.getElementById('masterModalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Add Master Entry';
+                
+                // Defaults
+                const today = new Date();
+                document.getElementById('modalMasterDate').value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+                document.getElementById('modalMasterIn').value = "16:00";
+                document.getElementById('modalMasterOut').value = "17:30";
+                document.getElementById('modalMasterClasses').value = "1";
+                document.getElementById('modalMasterRemarks').value = "";
+                
+                document.getElementById('masterModal').classList.add('active');
+            };
+
+            window.editMaster = function(index) {
+                populateModalDropdowns();
+                const rec = masterRecords[index];
+                document.getElementById('modalMasterIndex').value = index;
+                document.getElementById('masterModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Master Entry';
+                
+                document.getElementById('modalMasterDate').value = rec.date;
+                document.getElementById('modalMasterAct').value = rec.activity;
+                document.getElementById('modalMasterInst').value = rec.instructorId;
+                document.getElementById('modalMasterRepl').value = rec.replacementId || '';
+                document.getElementById('modalMasterIn').value = rec.inTime;
+                document.getElementById('modalMasterOut').value = rec.outTime;
+                document.getElementById('modalMasterClasses').value = rec.classes;
+                document.getElementById('modalMasterVal').value = rec.validatorCode;
+                document.getElementById('modalMasterRemarks').value = rec.remarks || '';
+
+                document.getElementById('masterModal').classList.add('active');
+            };
+
+            window.closeMasterModal = function() {
+                document.getElementById('masterModal').classList.remove('active');
+            };
+
+            window.saveMasterModal = function() {
+                const idx = parseInt(document.getElementById('modalMasterIndex').value);
+                const dateVal = document.getElementById('modalMasterDate').value;
+                const actVal = document.getElementById('modalMasterAct').value;
+                
+                const instOpt = document.getElementById('modalMasterInst').selectedOptions[0];
+                const replOpt = document.getElementById('modalMasterRepl').selectedOptions[0];
+                const valOpt = document.getElementById('modalMasterVal').selectedOptions[0];
+                
+                const inT = document.getElementById('modalMasterIn').value;
+                const outT = document.getElementById('modalMasterOut').value;
+                
+                if(!dateVal || !instOpt.value || !inT || !outT) return alert("Date, Instructor, In Time, and Out Time are required.");
+
+                const hasRepl = replOpt.value !== "";
+                const instName = instOpt.dataset.name;
+                const replName = hasRepl ? replOpt.dataset.name : '';
+                
+                const newRec = {
+                    createdAt: idx === -1 ? Date.now() : masterRecords[idx].createdAt, // Keep original time if editing
+                    date: dateVal,
+                    formattedDate: formatDisplayDate(dateVal),
+                    dayOfWeek: getDayOfWeek(dateVal),
+                    activity: actVal,
+                    
+                    instructorId: instOpt.value,
+                    instructorName: instName,
+                    instructorFormatted: `${instName} (Instructor)`,
+                    
+                    replacementId: hasRepl ? replOpt.value : '',
+                    replacementName: replName,
+                    replacementFormatted: hasRepl ? `${replName} (Replacement)` : '',
+                    
+                    creditedTo: hasRepl ? `${replName} (Replacement)` : `${instName} (Instructor)`,
+                    
+                    inTime: inT,
+                    outTime: outT,
+                    hours: calculateHours(inT, outT),
+                    classes: document.getElementById('modalMasterClasses').value,
+                    
+                    validatorCode: valOpt.value,
+                    validatorName: valOpt.dataset.name,
+                    remarks: document.getElementById('modalMasterRemarks').value
+                };
+
+                if (idx === -1) {
+                    masterRecords.unshift(newRec);
+                    showToast("New manual entry added.");
+                } else {
+                    masterRecords[idx] = newRec;
+                    showToast("Entry updated successfully.");
+                }
+
+                saveData();
+                renderMaster();
+                closeMasterModal();
+            };
+
+            function populateModalDropdowns() {
+                const instSel = document.getElementById('modalMasterInst');
+                const replSel = document.getElementById('modalMasterRepl');
+                const valSel = document.getElementById('modalMasterVal');
+                const actSel = document.getElementById('modalMasterAct');
+
+                let volOpts = '';
+                masterVolunteers.forEach(v => {
+                    volOpts += `<option value="${v.studentId}" data-name="${v.name}">${v.name} (${v.studentId})</option>`;
+                });
+
+                instSel.innerHTML = volOpts;
+                replSel.innerHTML = '<option value="">-- No Replacement --</option>' + volOpts;
+                valSel.innerHTML = volOpts;
+                actSel.innerHTML = masterActivities.map(a => `<option value="${a.title}">${a.title}</option>`).join('');
+                
+                // Default validator to admin
+                valSel.value = "2404132"; // Farhan
+            }
+
+            // Excel Exporter
+            function buildTsvRow(r) {
+                return [
+                    formatDisplayDate(r.date), r.dayOfWeek, r.instructorFormatted, r.instructorId,
+                    r.replacementFormatted || '', r.replacementId || '', r.inTime, r.outTime,
+                    r.hours, r.classes, r.creditedTo, r.validatorCode, r.validatorName, r.remarks || ''
+                ].join('\t');
+            }
+
+            document.getElementById('copyRangeBtn').addEventListener('click', () => {
+                const s = parseInt(document.getElementById('rangeStart').value) - 1;
+                const e = parseInt(document.getElementById('rangeEnd').value);
+                const slice = masterRecords.slice(s, e);
+                if(slice.length===0) return alert('No records selected.');
+                navigator.clipboard.writeText(slice.map(buildTsvRow).join('\n'));
+                showToast(`Copied ${slice.length} rows for Excel.`);
+            });
+
+            document.getElementById('copyAllBtn').addEventListener('click', () => {
+                if(masterRecords.length===0) return;
+                navigator.clipboard.writeText(masterRecords.map(buildTsvRow).join('\n'));
+                showToast('Copied all master records.');
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                if(masterRecords.length===0) return;
+                const headers = ['Date', 'Day of Week', 'Instructor', 'Student ID', 'Replacement (if any)', 'Replacement ID', 'Check-in Time', 'Check-out Time', 'Total Hours Spent', 'Number of Classes Taken', 'Credited To (Hours/Classes)', 'Validated By (Code)', 'Validated By (Name)', 'Remarks / What Was Covered'];
+                const formatted = masterRecords.map(r => [
+                    `"${formatDisplayDate(r.date)}"`, `"${r.dayOfWeek}"`, `"${r.instructorFormatted}"`, `"${r.instructorId}"`,
+                    `"${r.replacementFormatted || ''}"`, `"${r.replacementId || ''}"`, `"${r.inTime}"`, `"${r.outTime}"`,
+                    `"${r.hours}"`, `"${r.classes}"`, `"${r.creditedTo}"`, `"${r.validatorCode}"`, `"${r.validatorName}"`,
+                    `"${(r.remarks || '').replace(/"/g, '""')}"`
+                ].join(','));
+                const csv = [headers.join(','), ...formatted].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Prodip_Master_Register.csv'; a.click();
+            });
+
+            // ─── 3. VOLUNTEERS & ROLES ───
+            function renderVolunteerRoles() {
+                const roleSel = document.getElementById('volunteerRole');
+                roleSel.innerHTML = masterRoles.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
+
+                document.getElementById('volunteerListRender').innerHTML = masterVolunteers.map((v, i) => `
+                    <div class="list-item">
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:14px; color:var(--prodip-navy);">${v.name} <span class="cell-id">${v.studentId}</span></div>
+                            <div style="font-size:11.5px; color:var(--prodip-muted); margin-top:4px;">${v.role} · ${v.dept} '${v.batch} · Target: ${v.target}</div>
+                            <div style="font-size:11px; color:#475569; margin-top:2px;">Days: <b style="color:var(--prodip-olive);">${v.days.join(', ') || 'None'}</b></div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-outline btn-sm" onclick="editVolunteer(${i})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-outline btn-sm" style="color:#dc2626;" onclick="deleteVolunteer(${i})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('rolesListRender').innerHTML = masterRoles.map((r, i) => `
+                    <div class="list-item" style="padding: 8px 12px;">
+                        <div><b style="color:var(--prodip-navy);">${r.name}</b> <span style="font-size:11px; color:#64748b;">(Level ${r.level})</span></div>
+                        ${r.level < 6 ? `<button class="btn btn-outline btn-sm" style="color:#dc2626; padding:3px 6px;" onclick="deleteRole(${i})"><i class="fas fa-trash"></i></button>` : '<span style="font-size:10px; font-weight:700; color:var(--prodip-crimson);">Locked</span>'}
+                    </div>
+                `).join('');
+            }
+
+            window.saveVolunteer = function() {
+                const idx = parseInt(document.getElementById('editVolunteerIndex').value);
+                const days = Array.from(document.querySelectorAll('#volunteerDaysGrid input:checked')).map(cb => cb.value);
+                
+                const volObj = {
+                    studentId: document.getElementById('volunteerId').value.trim(),
+                    name: document.getElementById('volunteerName').value.trim(),
+                    role: document.getElementById('volunteerRole').value,
+                    dept: document.getElementById('volunteerDept').value.trim(),
+                    batch: document.getElementById('volunteerBatch').value.trim(),
+                    email: document.getElementById('volunteerId').value.trim() + '@student.cuet.ac.bd',
+                    phone: '',
+                    days: days,
+                    target: parseInt(document.getElementById('volunteerTarget').value) || 20
+                };
+
+                if(!volObj.studentId || !volObj.name) return alert("ID and Name are required.");
+
+                if (idx === -1) {
+                    masterVolunteers.push(volObj);
+                    showToast('New volunteer created.');
+                } else {
+                    masterVolunteers[idx] = volObj;
+                    showToast('Volunteer profile updated.');
+                }
+                
+                saveData();
+                renderVolunteerRoles();
+                resetVolunteerForm();
+            };
+
+            window.editVolunteer = function(index) {
+                const v = masterVolunteers[index];
+                document.getElementById('editVolunteerIndex').value = index;
+                document.getElementById('volunteerFormTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit Volunteer';
+                document.getElementById('saveVolunteerBtn').textContent = 'Update Profile';
+                
+                document.getElementById('volunteerId').value = v.studentId;
+                document.getElementById('volunteerName').value = v.name;
+                document.getElementById('volunteerRole').value = v.role;
+                document.getElementById('volunteerDept').value = v.dept;
+                document.getElementById('volunteerBatch').value = v.batch;
+                document.getElementById('volunteerTarget').value = v.target;
+
+                document.querySelectorAll('#volunteerDaysGrid input').forEach(cb => {
+                    cb.checked = v.days.includes(cb.value);
+                });
+            };
+
+            window.deleteVolunteer = function(index) {
+                if(confirm(`Delete ${masterVolunteers[index].name} from roster?`)) {
+                    masterVolunteers.splice(index, 1);
+                    saveData();
+                    renderVolunteerRoles();
+                }
+            };
+
+            window.resetVolunteerForm = function() {
+                document.getElementById('editVolunteerIndex').value = "-1";
+                document.getElementById('volunteerFormTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New Volunteer';
+                document.getElementById('saveVolunteerBtn').textContent = 'Save Volunteer';
+                
+                document.getElementById('volunteerId').value = '';
+                document.getElementById('volunteerName').value = '';
+                document.getElementById('volunteerDept').value = '';
+                document.getElementById('volunteerBatch').value = '';
+                document.getElementById('volunteerTarget').value = '20';
+                document.querySelectorAll('#volunteerDaysGrid input').forEach(cb => cb.checked = false);
+            };
+
+            window.addRole = function() {
+                const name = document.getElementById('newRoleName').value.trim();
+                const lvl = parseInt(document.getElementById('newRoleLevel').value);
+                if(!name || !lvl) return alert("Role name and level required.");
+                masterRoles.push({ name, level: lvl });
+                masterRoles.sort((a,b) => a.level - b.level);
+                saveData();
+                renderVolunteerRoles();
+                document.getElementById('newRoleName').value = '';
+            };
+
+            window.deleteRole = function(index) {
+                if(confirm('Delete this role?')) {
+                    masterRoles.splice(index, 1);
+                    saveData();
+                    renderVolunteerRoles();
+                }
+            };
+
+            // ─── 4. ACTIVITIES ───
+            function renderActivities() {
+                document.getElementById('activityListRender').innerHTML = masterActivities.map((a, i) => `
+                    <div class="list-item">
+                        <div>
+                            <div style="font-weight:700; color:var(--prodip-navy);">${a.title}</div>
+                            <div style="font-size:11px; color:#64748b; margin-top:4px;">Category: <b>${a.category}</b> · Credit Multiplier: <b style="color:var(--prodip-olive);">${a.multiplier}x</b></div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-outline btn-sm" onclick="editActivity(${i})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-outline btn-sm" style="color:#dc2626;" onclick="deleteActivity(${i})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            window.saveActivity = function() {
+                const idx = parseInt(document.getElementById('editActivityIndex').value);
+                const actObj = {
+                    title: document.getElementById('actTitle').value.trim(),
+                    category: document.getElementById('actCategory').value,
+                    multiplier: parseFloat(document.getElementById('actMultiplier').value) || 1
+                };
+
+                if(!actObj.title) return alert("Activity title required.");
+
+                if (idx === -1) masterActivities.push(actObj);
+                else masterActivities[idx] = actObj;
+                
+                saveData();
+                renderActivities();
+                resetActivityForm();
+                showToast('Activity saved.');
+            };
+
+            window.editActivity = function(index) {
+                const a = masterActivities[index];
+                document.getElementById('editActivityIndex').value = index;
+                document.getElementById('actTitle').value = a.title;
+                document.getElementById('actCategory').value = a.category;
+                document.getElementById('actMultiplier').value = a.multiplier;
+                document.getElementById('saveActivityBtn').textContent = 'Update Activity';
+            };
+
+            window.deleteActivity = function(index) {
+                if(confirm('Delete activity type?')) {
+                    masterActivities.splice(index, 1);
+                    saveData();
+                    renderActivities();
+                }
+            };
+
+            window.resetActivityForm = function() {
+                document.getElementById('editActivityIndex').value = "-1";
+                document.getElementById('actTitle').value = '';
+                document.getElementById('actMultiplier').value = '1';
+                document.getElementById('saveActivityBtn').textContent = 'Save Activity';
+            };
+
+            // ─── STORAGE & INIT ───
+            function saveData() {
+                localStorage.setItem('prodip_pending_records', JSON.stringify(pendingRecords));
+                localStorage.setItem('prodip_master_records', JSON.stringify(masterRecords));
+                localStorage.setItem('prodip_volunteer_db', JSON.stringify(masterVolunteers));
+                localStorage.setItem('prodip_roles_db', JSON.stringify(masterRoles));
+                localStorage.setItem('prodip_activities_db', JSON.stringify(masterActivities));
+            }
+
+            function loadData() {
+                const p = localStorage.getItem('prodip_pending_records'); if(p) pendingRecords = JSON.parse(p);
+                const m = localStorage.getItem('prodip_master_records'); if(m) masterRecords = JSON.parse(m);
+                const v = localStorage.getItem('prodip_volunteer_db'); if(v) masterVolunteers = JSON.parse(v);
+                const r = localStorage.getItem('prodip_roles_db'); if(r) masterRoles = JSON.parse(r);
+                const a = localStorage.getItem('prodip_activities_db'); if(a) masterActivities = JSON.parse(a);
+
+                // Mock Pending Data for demonstration if empty
+                if(pendingRecords.length === 0 && masterRecords.length === 0) {
+                    pendingRecords = [{
+                        createdAt: Date.now(), date: '2026-09-20', activity: 'Regular Class',
+                        instructorId: '2411025', instructorName: 'Ayesha Rahman', instructorFormatted: 'Ayesha Rahman (Instructor)',
+                        replacementId: '', replacementName: '', replacementFormatted: '',
+                        inTime: '16:00', outTime: '17:30', hours: '1.5', classes: '1',
+                        creditedTo: 'Ayesha Rahman (Instructor)', validatorCode: '2501080', validatorName: 'Md. Mubtasim Fuad',
+                        remarks: 'Mock draft sent from coordinator desk.'
+                    }];
+                }
+            }
+
+            function init() {
+                loadData();
+                renderInbox();
+                renderMaster();
+                renderVolunteerRoles();
+                renderActivities();
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
